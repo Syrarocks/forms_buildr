@@ -229,11 +229,8 @@ function FormEditor({ onSubmit }) {
               type="button"
               onClick={handleClearTextFields}
               color="orange"
-              icon
-              labelPosition="left"
-              style={{ marginBottom: "1em" }}
+              style={{ marginBottom: "1em", marginRight: "10em" }}
             >
-              <Icon name="delete" />
               Clear All Fields
             </Button>
 

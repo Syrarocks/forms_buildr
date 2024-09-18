@@ -10,14 +10,13 @@ import {
 import { useLocation } from "react-router-dom";
 
 function FormDisplay() {
-  const location = useLocation(); // Get the form data passed through state
+  const location = useLocation();
   const formData = location.state?.form || {}; // Access the form data
   const [responses, setResponses] = useState({});
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    // Initialize responses with empty values or arrays for checkboxes
     if (formData && formData.questions) {
       const initialResponses = {};
       formData.questions.forEach((question) => {
@@ -39,7 +38,6 @@ function FormDisplay() {
     e.preventDefault();
     let hasBlankOption = false;
 
-    // Validate required questions
     formData.questions.forEach((question) => {
       if (
         question.required &&
@@ -53,11 +51,9 @@ function FormDisplay() {
     });
 
     if (!hasBlankOption) {
-      // Retrieve existing responses from localStorage
       const savedResponses =
         JSON.parse(localStorage.getItem("formResponses")) || [];
 
-      // Store the new response
       savedResponses.push({
         formId: formData.id,
         formTitle: formData.title,
@@ -65,22 +61,28 @@ function FormDisplay() {
         answers: responses,
       });
 
-      // Save the updated responses to localStorage
       localStorage.setItem("formResponses", JSON.stringify(savedResponses));
 
       console.log("Submitted Responses:", responses);
 
       setSubmitted(true);
-      setError(""); // Clear any previous error messages
+      setError("");
     }
   };
 
   const renderQuestion = (question) => {
+    const isRequired = question.required ? (
+      <span style={{ color: "red", marginLeft: "4px" }}>*</span>
+    ) : null;
+
     switch (question.type) {
       case "text":
         return (
-          <Form.Field key={question.id}>
-            <label>{question.text}</label>
+          <Form.Field key={question.id} required={question.required}>
+            <label>
+              {question.text}
+              {isRequired}
+            </label>
             <input
               value={responses[question.id] || ""}
               onChange={(e) =>
@@ -91,8 +93,11 @@ function FormDisplay() {
         );
       case "multipleChoice":
         return (
-          <Form.Field key={question.id}>
-            <label>{question.text}</label>
+          <Form.Field key={question.id} required={question.required}>
+            <label>
+              {question.text}
+              {isRequired}
+            </label>
             {question.options.map((option) => (
               <Form.Radio
                 key={option.label}
@@ -108,8 +113,11 @@ function FormDisplay() {
         );
       case "checkboxes":
         return (
-          <Form.Field key={question.id}>
-            <label>{question.text}</label>
+          <Form.Field key={question.id} required={question.required}>
+            <label>
+              {question.text}
+              {isRequired}
+            </label>
             {question.options.map((option) => (
               <Form.Checkbox
                 key={option.label}
