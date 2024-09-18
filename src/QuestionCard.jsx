@@ -140,8 +140,9 @@ function QuestionCard({ question, onDelete, onChange }) {
                 { key: "fileUpload", value: "fileUpload", text: "File Upload" },
                 { key: "date", value: "date", text: "Date" },
               ]}
-              value={question.type}
+              value={question.type || ""} // Ensure the default option is selected if the value is empty
               onChange={handleTypeChange}
+              placeholder="Select Type" // Placeholder for the dropdown
             />
           </Grid.Column>
         </Grid.Row>
