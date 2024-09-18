@@ -1,0 +1,24 @@
+[
+  {
+    "title": "Customer Satisfaction Survey",
+    "questions": [
+      { "id": "q1", "text": "How would you rate our service?" },
+      { "id": "q2", "text": "Any additional comments?" }
+    ],
+    "answers": {
+      "q1": "Excellent",
+      "q2": "Keep up the good work!"
+    }
+  },
+  {
+    "title": "Employee Feedback",
+    "questions": [
+      { "id": "q1", "text": "Rate your work-life balance" },
+      { "id": "q2", "text": "Suggestions for improvement?" }
+    ],
+    "answers": {
+      "q1": "Good",
+      "q2": "More flexible hours."
+    }
+  }
+]
