@@ -71,18 +71,13 @@ function FormDisplay() {
   };
 
   const renderQuestion = (question) => {
-    const isRequired = question.required ? (
-      <span style={{ color: "red", marginLeft: "4px" }}>*</span>
-    ) : null;
+    // const isRequired = question.required ? null : null;
 
     switch (question.type) {
       case "text":
         return (
           <Form.Field key={question.id} required={question.required}>
-            <label>
-              {question.text}
-              {isRequired}
-            </label>
+            <label>{question.text}</label>
             <input
               value={responses[question.id] || ""}
               onChange={(e) =>
@@ -94,10 +89,7 @@ function FormDisplay() {
       case "multipleChoice":
         return (
           <Form.Field key={question.id} required={question.required}>
-            <label>
-              {question.text}
-              {isRequired}
-            </label>
+            <label>{question.text}</label>
             {question.options.map((option) => (
               <Form.Radio
                 key={option.label}
@@ -114,10 +106,7 @@ function FormDisplay() {
       case "checkboxes":
         return (
           <Form.Field key={question.id} required={question.required}>
-            <label>
-              {question.text}
-              {isRequired}
-            </label>
+            <label>{question.text}</label>
             {question.options.map((option) => (
               <Form.Checkbox
                 key={option.label}

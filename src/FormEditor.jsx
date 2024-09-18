@@ -218,7 +218,6 @@ function FormEditor({ onSubmit }) {
               onClick={handleAddQuestion}
               icon
               labelPosition="left"
-              color="green"
               style={{ marginBottom: "1em" }}
             >
               <Icon name="add" />
@@ -238,7 +237,7 @@ function FormEditor({ onSubmit }) {
             <Button
               type="button"
               onClick={handleSaveForm}
-              color="blue"
+              color="black"
               style={{ marginBottom: "1em" }}
             >
               Save Form
