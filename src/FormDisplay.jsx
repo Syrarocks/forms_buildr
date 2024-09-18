@@ -1,32 +1,32 @@
 import React, { useState, useEffect } from "react";
 import {
+  Container,
   Button,
-  Checkbox,
   Form,
   Message,
-  Radio,
-  Select,
-  TextArea,
-  Container,
   Segment,
   Header,
 } from "semantic-ui-react";
+import { useLocation } from "react-router-dom";
 
-function FormDisplay({ formData, userResponses, onSubmit }) {
-  const [responses, setResponses] = useState(userResponses || {});
+function FormDisplay() {
+  const location = useLocation(); // Get the form data passed through state
+  const formData = location.state?.form || {}; // Access the form data
+  const [responses, setResponses] = useState({});
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
+    // Initialize responses with empty values or arrays for checkboxes
     if (formData && formData.questions) {
       const initialResponses = {};
       formData.questions.forEach((question) => {
         initialResponses[question.id] =
           question.type === "checkboxes" ? [] : "";
       });
-      setResponses(userResponses || initialResponses);
+      setResponses(initialResponses);
     }
-  }, [formData, userResponses]);
+  }, [formData]);
 
   const handleResponseChange = (questionId, value) => {
     setResponses((prevResponses) => ({
@@ -36,10 +36,11 @@ function FormDisplay({ formData, userResponses, onSubmit }) {
   };
 
   const handleSubmitResponses = (e) => {
-    e.preventDefault(); // Prevent default form behavior
+    e.preventDefault();
     let hasBlankOption = false;
 
-    for (const question of formData.questions) {
+    // Validate required questions
+    formData.questions.forEach((question) => {
       if (
         question.required &&
         (responses[question.id] === "" ||
@@ -48,26 +49,29 @@ function FormDisplay({ formData, userResponses, onSubmit }) {
       ) {
         setError("Please answer all required questions.");
         hasBlankOption = true;
-        break;
       }
-    }
+    });
 
     if (!hasBlankOption) {
+      // Retrieve existing responses from localStorage
       const savedResponses =
         JSON.parse(localStorage.getItem("formResponses")) || [];
+
+      // Store the new response
       savedResponses.push({
+        formId: formData.id,
+        formTitle: formData.title,
         questions: formData.questions,
         answers: responses,
       });
+
+      // Save the updated responses to localStorage
       localStorage.setItem("formResponses", JSON.stringify(savedResponses));
 
-      // Log the submitted responses to the console
       console.log("Submitted Responses:", responses);
 
-      if (onSubmit) {
-        onSubmit(responses);
-      }
       setSubmitted(true);
+      setError(""); // Clear any previous error messages
     }
   };
 
@@ -77,12 +81,11 @@ function FormDisplay({ formData, userResponses, onSubmit }) {
         return (
           <Form.Field key={question.id}>
             <label>{question.text}</label>
-            <TextArea
+            <input
               value={responses[question.id] || ""}
               onChange={(e) =>
                 handleResponseChange(question.id, e.target.value)
               }
-              readOnly={!!userResponses}
             />
           </Form.Field>
         );
@@ -90,19 +93,16 @@ function FormDisplay({ formData, userResponses, onSubmit }) {
         return (
           <Form.Field key={question.id}>
             <label>{question.text}</label>
-            {question.options.map((option, index) => (
-              <Form.Field key={index}>
-                <Radio
-                  label={option.label}
-                  name={question.id}
-                  value={option.label}
-                  checked={responses[question.id] === option.label}
-                  onChange={(e, { value }) =>
-                    handleResponseChange(question.id, value)
-                  }
-                  readOnly={!!userResponses}
-                />
-              </Form.Field>
+            {question.options.map((option) => (
+              <Form.Radio
+                key={option.label}
+                label={option.label}
+                value={option.label}
+                checked={responses[question.id] === option.label}
+                onChange={(e, { value }) =>
+                  handleResponseChange(question.id, value)
+                }
+              />
             ))}
           </Form.Field>
         );
@@ -110,92 +110,21 @@ function FormDisplay({ formData, userResponses, onSubmit }) {
         return (
           <Form.Field key={question.id}>
             <label>{question.text}</label>
-            {question.options.map((option, index) => (
-              <Form.Field key={index}>
-                <Checkbox
-                  label={option.label}
-                  checked={(responses[question.id] || []).includes(
-                    option.label
-                  )}
-                  onChange={(e, { checked }) => {
-                    const newValue = checked
-                      ? [...(responses[question.id] || []), option.label]
-                      : (responses[question.id] || []).filter(
-                          (item) => item !== option.label
-                        );
-                    handleResponseChange(question.id, newValue);
-                  }}
-                  readOnly={!!userResponses}
-                />
-              </Form.Field>
+            {question.options.map((option) => (
+              <Form.Checkbox
+                key={option.label}
+                label={option.label}
+                checked={(responses[question.id] || []).includes(option.label)}
+                onChange={(e, { checked }) => {
+                  const newResponses = checked
+                    ? [...(responses[question.id] || []), option.label]
+                    : (responses[question.id] || []).filter(
+                        (item) => item !== option.label
+                      );
+                  handleResponseChange(question.id, newResponses);
+                }}
+              />
             ))}
-          </Form.Field>
-        );
-      case "dropdown":
-        return (
-          <Form.Field key={question.id}>
-            <label>{question.text}</label>
-            <Select
-              options={question.options.map((option) => ({
-                key: option.label,
-                text: option.label,
-                value: option.label,
-              }))}
-              value={responses[question.id] || ""}
-              onChange={(e, { value }) =>
-                handleResponseChange(question.id, value)
-              }
-              disabled={!!userResponses}
-            />
-          </Form.Field>
-        );
-      case "fileUpload":
-        return (
-          <Form.Field key={question.id}>
-            <label>{question.text}</label>
-            <Button
-              as="label"
-              htmlFor={question.id}
-              type="button"
-              secondary
-              style={{
-                padding: "8px 16px",
-                maxWidth: "150px",
-                width: "100%",
-                color: "white",
-              }}
-            >
-              Upload File
-            </Button>
-            <input
-              id={question.id}
-              type="file"
-              hidden
-              onChange={(e) =>
-                handleResponseChange(question.id, e.target.files[0])
-              }
-              disabled={!!userResponses}
-            />
-            {responses[question.id] && (
-              <p>Uploaded file: {responses[question.id].name}</p>
-            )}
-          </Form.Field>
-        );
-      case "date":
-        return (
-          <Form.Field key={question.id}>
-            <label>{question.text}</label>
-            <input
-              type="date"
-              value={responses[question.id] || ""}
-              onChange={(e) =>
-                handleResponseChange(question.id, e.target.value)
-              }
-              disabled={!!userResponses}
-            />
-            {responses[question.id] && (
-              <p>Selected date: {responses[question.id]}</p>
-            )}
           </Form.Field>
         );
       default:
@@ -205,49 +134,29 @@ function FormDisplay({ formData, userResponses, onSubmit }) {
 
   return (
     <Container style={{ maxWidth: "600px", margin: "auto" }}>
-      <Segment raised style={{ maxWidth: "600px", margin: "auto" }}>
-        {!submitted && (
-          <>
-            <Header as="h2" textAlign="center">
-              {formData.title}
-            </Header>
-            <p>{formData.description}</p>
-          </>
-        )}
-        {submitted ? (
-          <Message positive>
-            <Message.Header>
-              Your response has been successfully submitted!
-            </Message.Header>
-            <p>Here are your responses:</p>
-            {formData.questions.map((question) => (
-              <Segment key={question.id}>
-                <Header as="h5">{question.text}</Header>
-                <p>
-                  <strong>Your answer:</strong>{" "}
-                  {Array.isArray(responses[question.id])
-                    ? responses[question.id].join(", ")
-                    : responses[question.id]}
-                </p>
-              </Segment>
-            ))}
-          </Message>
-        ) : (
-          <Form onSubmit={handleSubmitResponses}>
-            {formData.questions.map((question) => (
+      <Segment>
+        <Header as="h2">{formData.title}</Header>
+        {formData.description && <p>{formData.description}</p>}
+        <Form onSubmit={handleSubmitResponses}>
+          {formData.questions &&
+            formData.questions.map((question) => (
               <div key={question.id} style={{ marginBottom: "1.5em" }}>
                 {renderQuestion(question)}
               </div>
             ))}
-            {error && <Message error content={error} />}
-            {!userResponses && (
-              <Button type="submit" primary style={{ marginTop: "1.5em" }}>
-                Submit Responses
-              </Button>
-            )}
-          </Form>
-        )}
+          {error && <Message error content={error} />}
+          <Button type="submit" primary>
+            Submit Responses
+          </Button>
+        </Form>
       </Segment>
+      {submitted && (
+        <Message positive>
+          <Message.Header>
+            Your response has been successfully submitted!
+          </Message.Header>
+        </Message>
+      )}
     </Container>
   );
 }

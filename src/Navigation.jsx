@@ -1,41 +1,49 @@
 import React from "react";
 import { Menu, Button } from "semantic-ui-react";
+import { Link } from "react-router-dom";
 
-function Navigation({ setCurrentView }) {
+const Navigation = () => {
   return (
     <Menu pointing secondary>
+      {/* Bold font for menu items */}
       <Menu.Item
+        as={Link}
+        to="/"
         name="Questions"
-        onClick={() => setCurrentView("questions")}
-        style={{ fontWeight: "bold", color: "black" }} // Bold font and custom color
+        style={{ fontWeight: "bold" }}
       />
       <Menu.Item
-        name="Create Survey Forms +"
-        onClick={() => setCurrentView("survey")}
-        style={{ fontWeight: "bold", color: "black" }} // Bold font and custom color
+        as={Link}
+        to="/survey-forms"
+        name="Survey"
+        style={{ fontWeight: "bold" }}
       />
       <Menu.Item
+        as={Link}
+        to="/form-responses"
         name="Form Responses"
-        onClick={() => setCurrentView("formResponses")} // Switch to Form Responses
-        style={{ fontWeight: "bold", color: "black" }} // Bold font and custom color
+        style={{ fontWeight: "bold" }}
       />
       <Menu.Item
+        as={Link}
+        to="/survey-responses"
         name="Survey Responses"
-        onClick={() => setCurrentView("surveyResponses")} // Switch to Survey Responses
-        style={{ fontWeight: "bold", color: "black" }} // Bold font and custom color
+        style={{ fontWeight: "bold" }}
       />
-      {/* Add Forms button with black color */}
+
+      {/* Blue button for Forms */}
       <Menu.Item>
         <Button
-          color="blue"
-          onClick={() => setCurrentView("forms")} // Switch to "forms" view
-          style={{ fontWeight: "bold" }}
+          as={Link}
+          to="/forms"
+          primary
+          style={{ fontWeight: "bold" }} // Makes the button text bold
         >
           Forms
         </Button>
       </Menu.Item>
     </Menu>
   );
-}
+};
 
 export default Navigation;

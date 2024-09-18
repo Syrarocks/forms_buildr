@@ -7,6 +7,7 @@ function QuestionCard({ question, onDelete, onChange }) {
   const handleTypeChange = (event, { value }) => {
     const newType = value;
     onChange(question.id, { type: newType });
+
     if (["multipleChoice", "checkboxes", "dropdown"].includes(newType)) {
       if (options.length === 0) {
         addOption();
@@ -37,76 +38,62 @@ function QuestionCard({ question, onDelete, onChange }) {
     onChange(question.id, { options: updatedOptions });
   };
 
-  const toggleRequired = (event, { checked }) => {
-    onChange(question.id, { required: checked });
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    onChange(question.id, { file });
-  };
-
-  const handleDateChange = (e) => {
-    onChange(question.id, { date: e.target.value });
-  };
-
   const renderOptions = () => {
-    switch (question.type) {
-      case "multipleChoice":
-      case "checkboxes":
-      case "dropdown":
-        return (
-          <div style={{ marginTop: "1em" }}>
-            {options.map((option, index) => (
-              <Form.Field key={index}>
-                <Form.Input
-                  placeholder={`Option ${index + 1}`}
-                  value={option.label}
-                  onChange={(e) => handleOptionChange(index, e.target.value)}
-                  style={{ maxWidth: "400px", marginBottom: "1em" }}
-                  action={
-                    <Button
-                      icon
-                      color="red"
-                      onClick={() => removeOption(index)}
-                    >
-                      <Icon name="delete" />
-                    </Button>
-                  }
-                />
-              </Form.Field>
-            ))}
-            <Button
-              icon
-              color="blue"
-              onClick={addOption}
-              style={{ marginTop: "1em" }}
-            >
-              <Icon name="add" />
-              Add Option
-            </Button>
-          </div>
-        );
-      case "fileUpload":
-        return (
-          <Form.Input
-            type="file"
-            onChange={handleFileChange}
+    if (["multipleChoice", "checkboxes", "dropdown"].includes(question.type)) {
+      return (
+        <div style={{ marginTop: "1em" }}>
+          {options.map((option, index) => (
+            <Form.Field key={index}>
+              <Form.Input
+                placeholder={`Option ${index + 1}`}
+                value={option.label}
+                onChange={(e) => handleOptionChange(index, e.target.value)}
+                style={{ maxWidth: "400px", marginBottom: "1em" }}
+                action={
+                  <Button icon color="red" onClick={() => removeOption(index)}>
+                    <Icon name="delete" />
+                  </Button>
+                }
+              />
+            </Form.Field>
+          ))}
+          <Button
+            icon
+            color="blue"
+            onClick={addOption}
             style={{ marginTop: "1em" }}
-          />
-        );
-      case "date":
-        return (
-          <Form.Input
-            type="date"
-            value={question.date || ""}
-            onChange={handleDateChange}
-            style={{ marginTop: "1em" }}
-          />
-        );
-      default:
-        return null;
+          >
+            <Icon name="add" />
+            Add Option
+          </Button>
+        </div>
+      );
     }
+    return null;
+  };
+
+  const renderQuestionInput = () => {
+    if (question.type === "fileUpload") {
+      return (
+        <Form.Input
+          type="file"
+          style={{ marginTop: "1em" }}
+          label="Upload a file"
+        />
+      );
+    }
+
+    if (question.type === "date") {
+      return (
+        <Form.Input
+          type="date"
+          style={{ marginTop: "1em" }}
+          label="Select a date"
+        />
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -128,7 +115,6 @@ function QuestionCard({ question, onDelete, onChange }) {
               fluid
               label="Question Type"
               options={[
-                { key: "select", value: "", text: "Select Type" }, // Default option
                 { key: "text", value: "text", text: "Text" },
                 {
                   key: "multipleChoice",
@@ -137,18 +123,19 @@ function QuestionCard({ question, onDelete, onChange }) {
                 },
                 { key: "checkboxes", value: "checkboxes", text: "Checkboxes" },
                 { key: "dropdown", value: "dropdown", text: "Dropdown" },
-                { key: "fileUpload", value: "fileUpload", text: "File Upload" },
-                { key: "date", value: "date", text: "Date" },
+                { key: "fileUpload", value: "fileUpload", text: "File Upload" }, // New File Upload option
+                { key: "date", value: "date", text: "Date" }, // New Date option
               ]}
               value={question.type || ""} // Ensure the default option is selected if the value is empty
               onChange={handleTypeChange}
-              placeholder="Select Type" // Placeholder for the dropdown
+              placeholder="Select Type"
             />
           </Grid.Column>
         </Grid.Row>
       </Grid>
 
       {renderOptions()}
+      {renderQuestionInput()}
 
       <Grid style={{ marginTop: "1em" }} verticalAlign="middle">
         <Grid.Row columns={2}>
@@ -156,17 +143,18 @@ function QuestionCard({ question, onDelete, onChange }) {
             <Form.Checkbox
               label="Required"
               checked={question.required || false}
-              onChange={toggleRequired}
+              onChange={(e, { checked }) =>
+                onChange(question.id, { required: checked })
+              }
             />
           </Grid.Column>
           <Grid.Column textAlign="right">
             <Icon
               name="trash"
-              negative
               color="red"
-              size="large" // Increased the size of the delete icon
+              size="large"
               onClick={() => onDelete(question.id)}
-              style={{ cursor: "pointer" }} // Added cursor pointer for better UX
+              style={{ cursor: "pointer" }}
             />
           </Grid.Column>
         </Grid.Row>

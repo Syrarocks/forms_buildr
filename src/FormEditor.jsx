@@ -7,7 +7,7 @@ import {
   Input,
   Segment,
   Header,
-  Form as SemanticForm, // Use the Semantic UI Form component
+  Form as SemanticForm,
 } from "semantic-ui-react";
 import QuestionCard from "./QuestionCard";
 
@@ -16,11 +16,11 @@ function FormEditor({ onSubmit }) {
   const [formDescription, setFormDescription] = useState("");
   const [questions, setQuestions] = useState([]);
   const [error, setError] = useState("");
-  const lastQuestionRef = useRef(null); // Ref for the last question
+  const lastQuestionRef = useRef(null);
 
   // Load the form data from localStorage when the component mounts
   useEffect(() => {
-    const savedFormData = JSON.parse(localStorage.getItem("formData"));
+    const savedFormData = JSON.parse(localStorage.getItem("savedFormData"));
     if (savedFormData) {
       setFormTitle(savedFormData.title || "");
       setFormDescription(savedFormData.description || "");
@@ -33,7 +33,7 @@ function FormEditor({ onSubmit }) {
       id: `question-${Date.now()}`,
       type: "",
       text: "",
-      options: [], // No options by default
+      options: [],
       required: false,
     };
     setQuestions((prevQuestions) => [...prevQuestions, newQuestion]);
@@ -111,8 +111,12 @@ function FormEditor({ onSubmit }) {
         questions,
       };
 
-      // Store form data in localStorage
-      localStorage.setItem("formData", JSON.stringify(formData));
+      // Get existing forms from localStorage
+      const storedForms = JSON.parse(localStorage.getItem("forms")) || [];
+      // Add the new form
+      const updatedForms = [...storedForms, formData];
+      // Save back to localStorage
+      localStorage.setItem("forms", JSON.stringify(updatedForms));
 
       if (onSubmit) {
         onSubmit(formData);
@@ -130,9 +134,9 @@ function FormEditor({ onSubmit }) {
     const formData = {
       title: formTitle,
       description: formDescription,
-      questions: questions,
+      questions,
     };
-    localStorage.setItem("formData", JSON.stringify(formData));
+    localStorage.setItem("savedFormData", JSON.stringify(formData));
     alert("Form data saved!");
   };
 
@@ -142,7 +146,7 @@ function FormEditor({ onSubmit }) {
     setFormDescription(""); // Clear form description
     setQuestions([]); // Clear questions completely (including required fields)
     setError(""); // Clear any existing error messages
-    localStorage.removeItem("formData"); // Remove saved form data to avoid reloading
+    localStorage.removeItem("savedFormData"); // Remove saved form data
   };
 
   return (
@@ -187,8 +191,8 @@ function FormEditor({ onSubmit }) {
             {questions.map((question, index) => (
               <div
                 key={question.id}
-                ref={index === questions.length - 1 ? lastQuestionRef : null} // Ref for the last question
-                style={{ marginBottom: "1em" }} // Add margin-bottom for spacing
+                ref={index === questions.length - 1 ? lastQuestionRef : null}
+                style={{ marginBottom: "1em" }}
               >
                 <List.Item>
                   <QuestionCard
@@ -201,38 +205,59 @@ function FormEditor({ onSubmit }) {
             ))}
           </List>
 
-          <Button
-            type="button"
-            onClick={handleAddQuestion}
-            color=""
-            icon
-            style={{ marginBottom: "1em" }}
+          {/* Buttons aligned in one line */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
           >
-            Add Question
-          </Button>
+            <Button
+              type="button"
+              onClick={handleAddQuestion}
+              icon
+              labelPosition="left"
+              color="green"
+              style={{ marginBottom: "1em" }}
+            >
+              <Icon name="add" />
+              Add Question
+            </Button>
 
-          {/* Button to clear text, type, and option text fields */}
-          <Button
-            type="button"
-            onClick={handleClearTextFields}
-            color="orange"
-            icon
-            style={{ marginBottom: "1em", marginLeft: "1em" }}
-          >
-            Clear All Fields
-          </Button>
+            <Button
+              type="button"
+              onClick={handleClearTextFields}
+              color="orange"
+              icon
+              labelPosition="left"
+              style={{ marginBottom: "1em" }}
+            >
+              <Icon name="delete" />
+              Clear All Fields
+            </Button>
 
-          {/* Ensure submit button is inside the Form and is type="submit" */}
-          <Button
-            type="submit" // This button will now trigger the form submission
-            primary
-            icon
-            labelPosition="left"
-            style={{ marginBottom: "2em", marginLeft: "26em" }}
-          >
-            <Icon name="paper plane" />
-            Submit
-          </Button>
+            {/* Save Form Icon Button */}
+            <Button
+              type="button"
+              onClick={handleSaveForm}
+              color="blue"
+              style={{ marginBottom: "1em" }}
+            >
+              Save Form
+            </Button>
+
+            <Button
+              type="submit"
+              primary
+              icon
+              labelPosition="left"
+              style={{ marginBottom: "1em" }}
+            >
+              <Icon name="paper plane" />
+              Submit
+            </Button>
+          </div>
         </SemanticForm>
       </Segment>
     </Container>

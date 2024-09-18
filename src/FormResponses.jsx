@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Container, Header, Segment } from "semantic-ui-react";
-import "./FormResponses.css"; // Import your custom CSS file
+import { Container, Segment, Header, Button } from "semantic-ui-react";
 
 function FormResponses() {
   const [groupedResponses, setGroupedResponses] = useState({});
@@ -12,7 +11,7 @@ function FormResponses() {
 
     // Group responses by form title
     const grouped = savedResponses.reduce((acc, response) => {
-      const formTitle = response.title || "Untitled Form";
+      const formTitle = response.formTitle || "Untitled Form";
       if (!acc[formTitle]) {
         acc[formTitle] = [];
       }
@@ -21,55 +20,50 @@ function FormResponses() {
     }, {});
 
     setGroupedResponses(grouped);
-
-    // Log the saved responses to the console
-    console.log("Grouped Responses by Form Title:", grouped);
   }, []);
 
-  const renderAnswer = (answer) => {
-    if (Array.isArray(answer)) {
-      return answer.join(", ");
-    } else if (typeof answer === "object" && answer !== null) {
-      return answer.name || JSON.stringify(answer);
-    } else {
-      return answer || "No response submitted";
-    }
+  const handleClearResponses = () => {
+    // Clear the form responses from localStorage
+    localStorage.removeItem("formResponses");
+
+    // Clear the local state
+    setGroupedResponses({});
   };
 
   return (
-    <Container className="form-responses-container">
-      <Header as="h3" textAlign="center" className="form-responses-header">
+    <Container>
+      <Header as="h2" textAlign="center">
         Form Responses
       </Header>
 
+      {/* Clear Responses Button */}
+      <Button color="red" onClick={handleClearResponses}>
+        Clear Responses
+      </Button>
+
       {Object.keys(groupedResponses).length > 0 ? (
         Object.keys(groupedResponses).map((formTitle, index) => (
-          <Segment key={index} className="form-response-card">
-            <Header as="h4" textAlign="center" className="response-header">
-              {formTitle}
-            </Header>
-
+          <Segment key={index}>
+            <Header as="h3">{formTitle}</Header>
             {groupedResponses[formTitle].map((response, responseIndex) => (
-              <Segment key={responseIndex} className="individual-response">
-                <Header as="h5" textAlign="center">
-                  Response {responseIndex + 1}
-                </Header>
-                {response.questions?.map((question, qIndex) => (
-                  <Segment key={qIndex} className="question-card">
-                    <Header as="h6" className="question-header">
-                      {question.text || "Untitled Question"}
-                    </Header>
-                    <p className="response-answer">
-                      {renderAnswer(response.answers?.[question.id])}
+              <Segment key={responseIndex}>
+                <Header as="h4">Response {responseIndex + 1}</Header>
+                {response.questions.map((question) => (
+                  <div key={question.id}>
+                    <p>
+                      <strong>{question.text}:</strong>{" "}
+                      {Array.isArray(response.answers[question.id])
+                        ? response.answers[question.id].join(", ")
+                        : response.answers[question.id]}
                     </p>
-                  </Segment>
+                  </div>
                 ))}
               </Segment>
             ))}
           </Segment>
         ))
       ) : (
-        <p className="no-responses-message">No form responses available.</p>
+        <p>No responses available</p>
       )}
     </Container>
   );

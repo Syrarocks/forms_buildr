@@ -1,81 +1,47 @@
-[
-  {
-    "id": "question-1726212922976",
-    "type": "text",
-    "text": "fjfhjdf",
-    "options": [],
-    "required": true,
-    "answer": "yuijyui"
-  },
-  {
-    "id": "question-1726212927536",
-    "type": "multipleChoice",
-    "text": "vcbjkhcvjb",
-    "options": [
+{
+  "formId": "form-1726650010253",
+  "formTitle": "fgfdg",
+  "formDescription": "ghgf",
+  "responses": {
+    "questions": [
       {
-        "label": "vbcvb "
+        "questionId": "question-1726649868573",
+        "questionText": "ghgfh",
+        "questionType": "text",
+        "answer": "jhkjhk",
+        "required": true
       },
       {
-        "label": "cvmvbn"
+        "questionId": "question-1726649874109",
+        "questionText": "ghghg",
+        "questionType": "multipleChoice",
+        "options": ["ghgfh", "mkjhk", "kjj", "jkj"],
+        "answer": "ghgfh",
+        "required": true
       },
       {
-        "label": "vcbm"
+        "questionId": "question-1726649963597",
+        "questionText": "kjj",
+        "questionType": "checkboxes",
+        "options": ["yht", "ytu", "e4r", "uuu"],
+        "answer": ["uuu"],
+        "required": true
       },
       {
-        "label": "vcb"
+        "questionId": "question-1726649978277",
+        "questionText": "hyjhgjk",
+        "questionType": "dropdown",
+        "options": ["ert", "rtyy", "kk", "lll"],
+        "answer": "rtyy",
+        "required": true
+      },
+      {
+        "questionId": "question-1726650002373",
+        "questionText": "khjkhj",
+        "questionType": "date",
+        "answer": "2024-09-01",
+        "required": true
       }
-    ],
-    "required": true,
-    "answer": "cvmvbn"
-  },
-  {
-    "id": "question-1726212928288",
-    "type": "checkboxes",
-    "text": "v mjnbnvcb",
-    "options": [
-      {
-        "label": "xdv"
-      },
-      {
-        "label": "edsdf"
-      },
-      {
-        "label": "gyhg"
-      },
-      {
-        "label": "jkk"
-      }
-    ],
-    "required": true,
-    "answer": ["gyhg"]
-  },
-  {
-    "id": "question-1726212961865",
-    "type": "dropdown",
-    "text": "jhmhj",
-    "options": [
-      {
-        "label": "uiuyi"
-      },
-      {
-        "label": "ytu"
-      },
-      {
-        "label": "yuiyui"
-      },
-      {
-        "label": "iiuiu"
-      }
-    ],
-    "required": true,
-    "answer": "iiuiu"
-  },
-  {
-    "id": "question-1726212973968",
-    "type": "date",
-    "text": "yyuik",
-    "options": [],
-    "required": true,
-    "answer": "2024-09-04"
+    ]
   }
-]
+}
