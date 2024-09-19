@@ -103,7 +103,6 @@ function QuestionCard({ question, onDelete, onChange }) {
           <Grid.Column width={12}>
             <Form.Input
               fluid
-              label="Question"
               placeholder="Enter your question"
               value={question.text}
               onChange={(e) => onChange(question.id, { text: e.target.value })}

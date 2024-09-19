@@ -30,7 +30,7 @@ function FormEditor({ onSubmit }) {
 
   const handleAddQuestion = () => {
     const newQuestion = {
-      id: `question-${Date.now()}`,
+      id: questions.length + 1, // Use numbers (1, 2, 3) as IDs
       type: "",
       text: "",
       options: [],
@@ -47,8 +47,14 @@ function FormEditor({ onSubmit }) {
   };
 
   const handleDeleteQuestion = (id) => {
+    const updatedQuestions = questions.filter((question) => question.id !== id);
+    setQuestions(updatedQuestions);
+    // Re-number the questions after deletion
     setQuestions((prevQuestions) =>
-      prevQuestions.filter((question) => question.id !== id)
+      prevQuestions.map((question, index) => ({
+        ...question,
+        id: index + 1, // Reassign sequential numbers
+      }))
     );
   };
 
@@ -111,12 +117,14 @@ function FormEditor({ onSubmit }) {
         questions,
       };
 
-      // Get existing forms from localStorage
+      // Save form to localStorage
       const storedForms = JSON.parse(localStorage.getItem("forms")) || [];
-      // Add the new form
       const updatedForms = [...storedForms, formData];
-      // Save back to localStorage
       localStorage.setItem("forms", JSON.stringify(updatedForms));
+
+      // Log form data to console
+      console.log("Submitted Form Data:", formData);
+      console.log("Stored Forms in LocalStorage:", updatedForms);
 
       if (onSubmit) {
         onSubmit(formData);
@@ -149,11 +157,16 @@ function FormEditor({ onSubmit }) {
     localStorage.removeItem("savedFormData"); // Remove saved form data
   };
 
+  const handleAnswerKey = () => {
+    alert("This is the Answer Key section");
+    // You can add functionality to show or manage the answer keys
+  };
+
   return (
     <Container style={{ maxWidth: "600px", margin: "auto" }}>
       <Segment
         raised
-        style={{ padding: "20px", maxWidth: "800px", margin: "auto" }}
+        style={{ padding: "20px", maxWidth: "1000px", margin: "auto" }}
       >
         <SemanticForm onSubmit={handleSubmitForm}>
           <div style={{ marginBottom: "1em" }}>
@@ -195,6 +208,10 @@ function FormEditor({ onSubmit }) {
                 style={{ marginBottom: "1em" }}
               >
                 <List.Item>
+                  <Header as="h5">
+                    Question {index + 1}.{" "}
+                    {/* Display "Question" followed by number */}
+                  </Header>
                   <QuestionCard
                     question={question}
                     onChange={handleQuestionChange}
@@ -224,15 +241,15 @@ function FormEditor({ onSubmit }) {
               Add Question
             </Button>
 
+            {/* Answer Key Button */}
             <Button
               type="button"
-              onClick={handleClearTextFields}
-              color="orange"
-              style={{ marginBottom: "1em", marginRight: "10em" }}
+              onClick={handleAnswerKey}
+              color="green"
+              style={{ marginBottom: "1em" }}
             >
-              Clear All Fields
+              Answer Key
             </Button>
-
             {/* Save Form Icon Button */}
             <Button
               type="button"
@@ -241,6 +258,15 @@ function FormEditor({ onSubmit }) {
               style={{ marginBottom: "1em" }}
             >
               Save Form
+            </Button>
+
+            <Button
+              type="button"
+              onClick={handleClearTextFields}
+              color="orange"
+              style={{ marginBottom: "1em", marginLeft: "10em" }}
+            >
+              Clear All Fields
             </Button>
 
             <Button
