@@ -54,6 +54,8 @@ function FormResponses() {
                       <strong>{question.text}:</strong>{" "}
                       {Array.isArray(response.answers[question.id])
                         ? response.answers[question.id].join(", ")
+                        : typeof response.answers[question.id] === "object"
+                        ? JSON.stringify(response.answers[question.id]) // Handle objects
                         : response.answers[question.id]}
                     </p>
                   </div>
