@@ -18,12 +18,7 @@ const Navigation = () => {
         name="Survey"
         style={{ fontWeight: "bold" }}
       />
-      <Menu.Item
-        as={Link}
-        to="/form-responses"
-        name="Form Responses"
-        style={{ fontWeight: "bold" }}
-      />
+
       <Menu.Item
         as={Link}
         to="/survey-responses"
@@ -40,6 +35,17 @@ const Navigation = () => {
           style={{ fontWeight: "bold" }} // Makes the button text bold
         >
           Forms
+        </Button>
+      </Menu.Item>
+
+      <Menu.Item>
+        <Button
+          as={Link}
+          to="/form-responses"
+          primary
+          style={{ fontWeight: "bold" }}
+        >
+          Form responses
         </Button>
       </Menu.Item>
     </Menu>

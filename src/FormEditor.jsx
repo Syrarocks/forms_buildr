@@ -13,11 +13,11 @@ import {
 import { useNavigate } from "react-router-dom";
 
 function FormEditor({ onSubmit }) {
-  const [formTitle, setFormTitle] = useState("");
-  const [formDescription, setFormDescription] = useState("");
+  const [formTitle, setFormTitle] = useState(""); // Set initial state to empty string
+  const [formDescription, setFormDescription] = useState(""); // Set initial state to empty string
   const [questions, setQuestions] = useState([]);
-  const [error, setError] = useState("");
-  const lastQuestionRef = useRef(null);
+  const [errors, setErrors] = useState({}); // Object to store validation errors
+  const questionRefs = useRef([]); // Array of references for each question input
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,7 +31,7 @@ function FormEditor({ onSubmit }) {
 
   const handleAddQuestion = () => {
     const newQuestion = {
-      id: questions.length + 1, // Ensure 'id' is set sequentially
+      id: questions.length + 1,
       type: "",
       text: "",
       options: [],
@@ -39,10 +39,11 @@ function FormEditor({ onSubmit }) {
     };
     setQuestions((prevQuestions) => [...prevQuestions, newQuestion]);
 
+    // Scroll to the new question after it is added
     setTimeout(() => {
-      if (lastQuestionRef.current) {
-        lastQuestionRef.current.scrollIntoView({ behavior: "smooth" });
-      }
+      questionRefs.current[questions.length]?.scrollIntoView({
+        behavior: "smooth",
+      });
     }, 100);
   };
 
@@ -51,9 +52,10 @@ function FormEditor({ onSubmit }) {
       .filter((question) => question.id !== questionId)
       .map((question, index) => ({
         ...question,
-        id: index + 1, // Re-sequence 'id' after deletion
+        id: index + 1,
       }));
     setQuestions(updatedQuestions);
+    setErrors({}); // Clear errors after deleting a question
   };
 
   const handleQuestionChange = (questionId, updatedProps) => {
@@ -62,15 +64,39 @@ function FormEditor({ onSubmit }) {
         question.id === questionId ? { ...question, ...updatedProps } : question
       )
     );
+
+    // Clear the error for this specific question when the text is changed
+    setErrors((prevErrors) => {
+      const newErrors = { ...prevErrors };
+      if (updatedProps.text) {
+        delete newErrors[questionId - 1]; // Remove the error for this question
+      }
+      return newErrors;
+    });
   };
 
   const handleTypeChange = (questionId, value) => {
     const updatedQuestions = questions.map((question) =>
       question.id === questionId
-        ? { ...question, type: value, options: [] }
+        ? {
+            ...question,
+            type: value,
+            options: ["multipleChoice", "checkboxes", "dropdown"].includes(
+              value
+            )
+              ? [{ label: "" }] // Add one empty option by default
+              : [],
+          }
         : question
     );
     setQuestions(updatedQuestions);
+
+    // Clear the error for this specific question type when it is changed
+    setErrors((prevErrors) => {
+      const newErrors = { ...prevErrors };
+      delete newErrors[`type${questionId - 1}`]; // Remove the error for this question type
+      return newErrors;
+    });
   };
 
   const handleOptionChange = (questionId, optionIndex, value) => {
@@ -84,6 +110,15 @@ function FormEditor({ onSubmit }) {
       return question;
     });
     setQuestions(updatedQuestions);
+
+    // Clear the error for this specific option when the text is changed
+    setErrors((prevErrors) => {
+      const newErrors = { ...prevErrors };
+      if (value.trim() !== "") {
+        delete newErrors[questionId - 1]; // Remove the error for this question's option
+      }
+      return newErrors;
+    });
   };
 
   const addOption = (questionId) => {
@@ -93,6 +128,8 @@ function FormEditor({ onSubmit }) {
         : question
     );
     setQuestions(updatedQuestions);
+
+    // Do not set errors when adding a new option
   };
 
   const removeOption = (questionId, optionIndex) => {
@@ -107,7 +144,138 @@ function FormEditor({ onSubmit }) {
     setQuestions(updatedQuestions);
   };
 
-  const renderOptions = (question) => {
+  const handleSubmitForm = (e) => {
+    e.preventDefault();
+    const newErrors = {}; // Initialize a new errors object
+    let firstErrorIndex = null; // To track the first error index
+
+    if (formTitle.trim() === "") {
+      newErrors.formTitle = "Form title is required.";
+    }
+
+    if (questions.length === 0) {
+      newErrors.general = "Please add at least one question.";
+    } else {
+      questions.forEach((question, index) => {
+        if (!question.text || question.text.trim() === "") {
+          newErrors[index] = "Question text is required.";
+          if (firstErrorIndex === null) firstErrorIndex = index;
+        } else if (!question.type) {
+          newErrors[`type${index}`] = "Question type is required.";
+          if (firstErrorIndex === null) firstErrorIndex = index;
+        } else if (
+          ["multipleChoice", "checkboxes", "dropdown"].includes(question.type)
+        ) {
+          // Check options only during form submission
+          for (const option of question.options) {
+            if (option.label.trim() === "") {
+              newErrors[index] = "All options must have text.";
+              if (firstErrorIndex === null) firstErrorIndex = index;
+              break;
+            }
+          }
+        }
+      });
+    }
+
+    setErrors(newErrors);
+
+    // Scroll to the first error if there is one
+    if (firstErrorIndex !== null) {
+      questionRefs.current[firstErrorIndex]?.scrollIntoView({
+        behavior: "smooth",
+      });
+    }
+
+    // If there are no errors, proceed with form submission
+    if (Object.keys(newErrors).length === 0) {
+      const formId = `form-${Date.now()}`;
+
+      const formData = {
+        form_id: formId,
+        title: formTitle,
+        description: formDescription,
+        questions: questions.map((q) => ({
+          id: q.id,
+          type: q.type,
+          text: q.text,
+          options: q.options,
+          required: q.required,
+        })),
+      };
+
+      const storedForms = JSON.parse(localStorage.getItem("forms")) || [];
+      const updatedForms = [...storedForms, formData];
+      localStorage.setItem("forms", JSON.stringify(updatedForms));
+
+      if (onSubmit) {
+        onSubmit(formData);
+      }
+
+      navigate("/answer-key", {
+        state: {
+          title: formTitle,
+          description: formDescription,
+          questions: questions.map(({ id, ...rest }) => ({
+            id,
+            ...rest,
+          })),
+        },
+      });
+
+      setFormTitle("");
+      setFormDescription("");
+      setQuestions([]);
+      setErrors({});
+    }
+  };
+
+  const handleSaveForm = () => {
+    const formData = {
+      form_id: `form-${Date.now()}`,
+      title: formTitle,
+      description: formDescription,
+      questions: questions.map((q) => ({
+        id: q.id,
+        type: q.type,
+        text: q.text,
+        options: q.options,
+        required: q.required,
+      })),
+    };
+    localStorage.setItem("savedFormData", JSON.stringify(formData));
+    alert("Form data saved!");
+  };
+
+  const handleClearTextFields = () => {
+    setFormTitle("");
+    setFormDescription("");
+    setQuestions([]);
+    setErrors({});
+    localStorage.removeItem("savedFormData");
+  };
+
+  const handleAnswerKey = () => {
+    navigate("/answer-key", {
+      state: {
+        title: formTitle,
+        description: formDescription,
+        questions: questions.map(({ id, ...rest }) => ({
+          id,
+          ...rest,
+        })),
+      },
+    });
+  };
+
+  const isFormValid = () => {
+    if (!formTitle.trim()) return false;
+    return questions.some(
+      (question) => question.text.trim() !== "" && question.type
+    );
+  };
+
+  const renderOptions = (question, questionIndex) => {
     if (["multipleChoice", "checkboxes", "dropdown"].includes(question.type)) {
       return (
         <div style={{ marginTop: "1em" }}>
@@ -119,7 +287,11 @@ function FormEditor({ onSubmit }) {
                 onChange={(e) =>
                   handleOptionChange(question.id, index, e.target.value)
                 }
-                style={{ maxWidth: "400px", marginBottom: "1em" }}
+                style={{
+                  maxWidth: "400px",
+                  marginBottom: "1em",
+                  backgroundColor: errors[questionIndex] ? "#ffcccc" : "", // Highlight if there is an error
+                }}
                 action={
                   <Button
                     icon
@@ -147,204 +319,62 @@ function FormEditor({ onSubmit }) {
     return null;
   };
 
-  const renderQuestionInput = (question) => {
-    if (question.type === "fileUpload") {
-      return (
-        <Form.Input
-          type="file"
-          style={{ marginTop: "1em" }}
-          label="Upload a file"
-        />
-      );
-    }
-
-    if (question.type === "date") {
-      return (
-        <Form.Input
-          type="date"
-          style={{ marginTop: "1em" }}
-          label="Select a date"
-        />
-      );
-    }
-
-    return null;
-  };
-
-  const handleSubmitForm = (e) => {
-    e.preventDefault();
-
-    if (formTitle.trim() === "") {
-      setError("Form title is required.");
-      return;
-    }
-
-    if (questions.length === 0) {
-      setError("Please add at least one question.");
-      return;
-    }
-
-    let hasError = false;
-    for (const question of questions) {
-      if (!question.text || question.text.trim() === "") {
-        setError("All questions must have text.");
-        hasError = true;
-        break;
-      }
-
-      if (!question.type) {
-        setError("Please select a question type for each question.");
-        hasError = true;
-        break;
-      }
-
-      if (
-        ["multipleChoice", "checkboxes", "dropdown"].includes(question.type)
-      ) {
-        for (const option of question.options) {
-          if (option.label.trim() === "") {
-            setError("Options cannot be empty.");
-            hasError = true;
-            break;
-          }
-        }
-      }
-    }
-
-    if (!hasError) {
-      setError("");
-      const formId = `form-${Date.now()}`;
-
-      // Create the form data object in the required format
-      const formData = {
-        form_id: formId,
-        title: formTitle,
-        description: formDescription,
-        questions: questions.map((q) => ({
-          id: q.id, // Use 'id' field
-          type: q.type,
-          text: q.text,
-          options: q.options,
-          required: q.required,
-        })),
-        // This will be filled later during the answer key creation
-      };
-
-      const storedForms = JSON.parse(localStorage.getItem("forms")) || [];
-      const updatedForms = [...storedForms, formData];
-      localStorage.setItem("forms", JSON.stringify(updatedForms));
-
-      // Log the form object to the console
-      console.log("Form Data:", formData);
-
-      if (onSubmit) {
-        onSubmit(formData);
-      }
-
-      navigate("/answer-key", {
-        state: {
-          title: formTitle,
-          description: formDescription,
-          questions: questions.map(({ id, ...rest }) => ({
-            id,
-            ...rest,
-          })),
-        },
-      });
-
-      setFormTitle("");
-      setFormDescription("");
-      setQuestions([]);
-    }
-  };
-
-  const handleSaveForm = () => {
-    const formData = {
-      form_id: `form-${Date.now()}`,
-      title: formTitle,
-      description: formDescription,
-      questions: questions.map((q) => ({
-        id: q.id,
-        type: q.type,
-        text: q.text,
-        options: q.options,
-        required: q.required,
-      })),
-    };
-    localStorage.setItem("savedFormData", JSON.stringify(formData));
-    alert("Form data saved!");
-  };
-
-  const handleClearTextFields = () => {
-    setFormTitle("");
-    setFormDescription("");
-    setQuestions([]);
-    setError("");
-    localStorage.removeItem("savedFormData");
-  };
-
-  const handleAnswerKey = () => {
-    navigate("/answer-key", {
-      state: {
-        title: formTitle,
-        description: formDescription,
-        questions: questions.map(({ id, ...rest }) => ({
-          id,
-          ...rest,
-        })),
-      },
-    });
-  };
-
   return (
     <Container style={{ maxWidth: "600px", margin: "auto" }}>
       <Segment
         raised
         style={{ padding: "20px", maxWidth: "1000px", margin: "auto" }}
       >
+        <div style={{ marginBottom: "1em" }}>
+          <Input
+            fluid
+            placeholder="Untitled Form"
+            value={formTitle}
+            onChange={(e) => setFormTitle(e.target.value)}
+            style={{
+              fontSize: "1.5em",
+              fontWeight: formTitle ? "bold" : "normal",
+              width: "40%",
+            }}
+          />
+        </div>
+
+        <div style={{ marginBottom: "1em" }}>
+          <Input
+            fluid
+            placeholder="Add a form description"
+            value={formDescription}
+            onChange={(e) => setFormDescription(e.target.value)}
+            style={{ fontSize: "1.2em", fontStyle: "italic" }}
+          />
+        </div>
+
+        {errors.general && (
+          <Header as="h4" color="red">
+            {errors.general}
+          </Header>
+        )}
+
         <Form onSubmit={handleSubmitForm}>
-          <div style={{ marginBottom: "1em" }}>
-            <label style={{ marginBottom: "5px", fontWeight: "bold" }}>
-              Form Title
-            </label>
-            <Input
-              fluid
-              placeholder="Form Title"
-              value={formTitle}
-              onChange={(e) => setFormTitle(e.target.value)}
-              error={!!error}
-            />
-          </div>
-
-          <div style={{ marginBottom: "1em" }}>
-            <label style={{ marginBottom: "5px", fontWeight: "bold" }}>
-              Form Description
-            </label>
-            <Input
-              fluid
-              placeholder="Form Description"
-              value={formDescription}
-              onChange={(e) => setFormDescription(e.target.value)}
-            />
-          </div>
-
-          {error && (
-            <Header as="h4" color="red">
-              {error}
-            </Header>
-          )}
-
           <List divided>
             {questions.map((question, index) => (
               <div
                 key={question.id}
-                ref={index === questions.length - 1 ? lastQuestionRef : null}
+                ref={(el) => (questionRefs.current[index] = el)} // Add ref for each question
                 style={{ marginBottom: "1em" }}
               >
                 <List.Item>
                   <Grid>
                     <Grid.Row>
-                      <Grid.Column width={10}>
+                      <Grid.Column width={10} style={{ paddingTop: "1.5em" }}>
+                        {/* Reserve space for the error message */}
+                        <div style={{ minHeight: "1.5em" }}>
+                          {errors[index] && (
+                            <Header as="h4" color="red">
+                              {errors[index]}
+                            </Header>
+                          )}
+                        </div>
                         <label style={{ fontWeight: "bold" }}>{`Question ${
                           index + 1
                         }`}</label>
@@ -357,10 +387,21 @@ function FormEditor({ onSubmit }) {
                               text: e.target.value,
                             })
                           }
-                          style={{ marginBottom: "1em" }}
+                          style={{
+                            marginBottom: "1em",
+                            backgroundColor: errors[index] ? "#ffcccc" : "", // Highlight if there is an error
+                          }}
                         />
                       </Grid.Column>
-                      <Grid.Column width={6}>
+                      <Grid.Column width={6} style={{ paddingTop: "1.5em" }}>
+                        {/* Reserve space for the error message */}
+                        <div style={{ minHeight: "1.5em" }}>
+                          {errors[`type${index}`] && (
+                            <Header as="h4" color="red">
+                              {errors[`type${index}`]}
+                            </Header>
+                          )}
+                        </div>
                         <Form.Select
                           fluid
                           label="Question Type"
@@ -393,15 +434,19 @@ function FormEditor({ onSubmit }) {
                             handleTypeChange(question.id, value)
                           }
                           placeholder="Select Type"
+                          style={{
+                            backgroundColor: errors[`type${index}`]
+                              ? "#ffcccc"
+                              : "", // Highlight if there is an error
+                          }}
                         />
                       </Grid.Column>
                     </Grid.Row>
                   </Grid>
 
-                  {renderOptions(question)}
-                  {renderQuestionInput(question)}
+                  {renderOptions(question, index)}
 
-                  <Grid style={{ marginTop: "1em" }} verticalAlign="middle">
+                  <Grid style={{ marginTop: "2em" }} verticalAlign="middle">
                     <Grid.Row columns={2}>
                       <Grid.Column>
                         <Form.Checkbox
@@ -450,41 +495,45 @@ function FormEditor({ onSubmit }) {
 
             <Button
               type="button"
-              onClick={handleAnswerKey}
-              color="green"
-              style={{ marginBottom: "1em" }}
-            >
-              Answer Key
-            </Button>
-
-            <Button
-              type="button"
-              onClick={handleSaveForm}
-              color="black"
-              style={{ marginBottom: "1em" }}
-            >
-              Save Form
-            </Button>
-
-            <Button
-              type="button"
               onClick={handleClearTextFields}
               color="orange"
               style={{ marginBottom: "1em" }}
             >
-              Clear Responses
+              Clear
             </Button>
 
-            <Button
-              type="submit"
-              primary
-              icon
-              labelPosition="left"
-              style={{ marginBottom: "1em" }}
-            >
-              <Icon name="paper plane" />
-              Submit
-            </Button>
+            {isFormValid() && (
+              <>
+                <Button
+                  type="button"
+                  onClick={handleAnswerKey}
+                  color="green"
+                  style={{ marginBottom: "1em" }}
+                >
+                  Answer Key
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={handleSaveForm}
+                  color="black"
+                  style={{ marginBottom: "1em" }}
+                >
+                  Save Form
+                </Button>
+
+                <Button
+                  type="submit"
+                  primary
+                  icon
+                  labelPosition="left"
+                  style={{ marginBottom: "1em" }}
+                >
+                  <Icon name="paper plane" />
+                  Submit
+                </Button>
+              </>
+            )}
           </div>
         </Form>
       </Segment>
