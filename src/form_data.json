@@ -1,67 +1,103 @@
 {
-  "formId": "form-1726650010253",
-  "formTitle": "fgfdg",
-  "formDescription": "ghgf",
+  "form_id": "form-1727375743200",
+  "title": "quiz",
+  "description": "hgjhhj",
   "questions": [
     {
-      "questionId": "Question 1",
-      "questionText": "ghgfh",
-      "questionType": "text",
+      "id": 1,
+      "type": "text",
+      "text": "hg",
+      "options": [],
       "required": true
     },
     {
-      "questionId": "Question 2",
-      "questionText": "ghghg",
-      "questionType": "multipleChoice",
-      "options": ["ghgfh", "mkjhk", "kjj", "jkj"],
+      "id": 2,
+      "type": "multipleChoice",
+      "text": "bvbv",
+      "options": [
+        {
+          "label": "jkhh"
+        },
+        {
+          "label": "nbnbn"
+        },
+        {
+          "label": "jhj"
+        },
+        {
+          "label": "jhj"
+        }
+      ],
       "required": true
     },
     {
-      "questionId": "Question 3",
-      "questionText": "kjj",
-      "questionType": "checkboxes",
-      "options": ["yht", "ytu", "e4r", "uuu"],
+      "id": 3,
+      "type": "checkboxes",
+      "text": "jhjhdsjhf",
+      "options": [
+        {
+          "label": "djbhvn"
+        },
+        {
+          "label": "uiiyy"
+        },
+        {
+          "label": "ncb"
+        },
+        {
+          "label": "ygy"
+        }
+      ],
       "required": true
     },
     {
-      "questionId": "Question 4",
-      "questionText": "hyjhgjk",
-      "questionType": "dropdown",
-      "options": ["ert", "rtyy", "kk", "lll"],
+      "id": 4,
+      "type": "dropdown",
+      "text": "dhcdgvh",
+      "options": [
+        {
+          "label": "ncbn"
+        },
+        {
+          "label": "ugud"
+        },
+        {
+          "label": "Ada"
+        },
+        {
+          "label": "gafs"
+        }
+      ],
       "required": true
     },
     {
-      "questionId": "Question 5",
-      "questionText": "khjkhj",
-      "questionType": "date",
+      "id": 5,
+      "type": "date",
+      "text": "dardsrd",
+      "options": [],
       "required": true
     }
   ],
-  "responses": [
+  "answer_key": [
     {
-      "answerId": "Answer 1",
-      "questionId": "Question 1",
-      "answer": "jhkjhk"
+      "question_id": 1,
+      "answer": "gfhgdhgh"
     },
     {
-      "answerId": "Answer 2",
-      "questionId": "Question 2",
-      "answer": "ghgfh"
+      "question_id": 2,
+      "answer": "nbnbn"
     },
     {
-      "answerId": "Answer 3",
-      "questionId": "Question 3",
-      "answer": ["uuu"]
+      "question_id": 3,
+      "answer": ["ncb"]
     },
     {
-      "answerId": "Answer 4",
-      "questionId": "Question 4",
-      "answer": "rtyy"
+      "question_id": 4,
+      "answer": "gafs"
     },
     {
-      "answerId": "Answer 5",
-      "questionId": "Question 5",
-      "answer": "2024-09-01"
+      "question_id": 5,
+      "answer": "2024-09-04"
     }
   ]
 }

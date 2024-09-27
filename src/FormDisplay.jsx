@@ -38,6 +38,7 @@ function FormDisplay() {
     e.preventDefault();
     let hasBlankOption = false;
 
+    // Check for any required fields that are not answered
     formData.questions.forEach((question) => {
       if (
         question.required &&
@@ -51,19 +52,26 @@ function FormDisplay() {
     });
 
     if (!hasBlankOption) {
+      // Create an array of response objects directly
+      const submissionData = {
+        responses: formData.questions.map((question) => ({
+          question_id: question.id,
+          answer: responses[question.id],
+        })),
+      };
+
+      // Retrieve existing responses from local storage or initialize an empty array
       const savedResponses =
         JSON.parse(localStorage.getItem("formResponses")) || [];
 
-      savedResponses.push({
-        formId: formData.id,
-        formTitle: formData.title,
-        questions: formData.questions,
-        answers: responses,
-      });
+      // Add the new submission data
+      savedResponses.push(submissionData);
 
+      // Save the updated responses array back to local storage
       localStorage.setItem("formResponses", JSON.stringify(savedResponses));
 
-      console.log("Submitted Responses:", responses);
+      // Display the stored responses in the console
+      console.log("Submitted Form Data:", submissionData);
 
       setSubmitted(true);
       setError("");
@@ -71,8 +79,6 @@ function FormDisplay() {
   };
 
   const renderQuestion = (question) => {
-    // const isRequired = question.required ? null : null;
-
     switch (question.type) {
       case "text":
         return (
@@ -122,6 +128,37 @@ function FormDisplay() {
                 }}
               />
             ))}
+          </Form.Field>
+        );
+      case "dropdown":
+        return (
+          <Form.Field key={question.id} required={question.required}>
+            <label>{question.text}</label>
+            <Form.Select
+              options={question.options.map((option) => ({
+                key: option.label,
+                value: option.label,
+                text: option.label,
+              }))}
+              value={responses[question.id] || ""}
+              onChange={(e, { value }) =>
+                handleResponseChange(question.id, value)
+              }
+              placeholder="Select an option"
+            />
+          </Form.Field>
+        );
+      case "date":
+        return (
+          <Form.Field key={question.id} required={question.required}>
+            <label>{question.text}</label>
+            <input
+              type="date"
+              value={responses[question.id] || ""}
+              onChange={(e) =>
+                handleResponseChange(question.id, e.target.value)
+              }
+            />
           </Form.Field>
         );
       default:

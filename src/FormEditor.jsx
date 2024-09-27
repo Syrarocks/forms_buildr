@@ -7,9 +7,10 @@ import {
   Input,
   Segment,
   Header,
-  Form as SemanticForm,
+  Form,
+  Grid,
 } from "semantic-ui-react";
-import QuestionCard from "./QuestionCard";
+import { useNavigate } from "react-router-dom";
 
 function FormEditor({ onSubmit }) {
   const [formTitle, setFormTitle] = useState("");
@@ -17,8 +18,8 @@ function FormEditor({ onSubmit }) {
   const [questions, setQuestions] = useState([]);
   const [error, setError] = useState("");
   const lastQuestionRef = useRef(null);
+  const navigate = useNavigate();
 
-  // Load the form data from localStorage when the component mounts
   useEffect(() => {
     const savedFormData = JSON.parse(localStorage.getItem("savedFormData"));
     if (savedFormData) {
@@ -30,7 +31,7 @@ function FormEditor({ onSubmit }) {
 
   const handleAddQuestion = () => {
     const newQuestion = {
-      id: questions.length + 1, // Use numbers (1, 2, 3) as IDs
+      id: questions.length + 1, // Ensure 'id' is set sequentially
       type: "",
       text: "",
       options: [],
@@ -38,7 +39,6 @@ function FormEditor({ onSubmit }) {
     };
     setQuestions((prevQuestions) => [...prevQuestions, newQuestion]);
 
-    // Scroll to the new question after it's added
     setTimeout(() => {
       if (lastQuestionRef.current) {
         lastQuestionRef.current.scrollIntoView({ behavior: "smooth" });
@@ -46,24 +46,129 @@ function FormEditor({ onSubmit }) {
     }, 100);
   };
 
-  const handleDeleteQuestion = (id) => {
-    const updatedQuestions = questions.filter((question) => question.id !== id);
-    setQuestions(updatedQuestions);
-    // Re-number the questions after deletion
-    setQuestions((prevQuestions) =>
-      prevQuestions.map((question, index) => ({
+  const handleDeleteQuestion = (questionId) => {
+    const updatedQuestions = questions
+      .filter((question) => question.id !== questionId)
+      .map((question, index) => ({
         ...question,
-        id: index + 1, // Reassign sequential numbers
-      }))
+        id: index + 1, // Re-sequence 'id' after deletion
+      }));
+    setQuestions(updatedQuestions);
+  };
+
+  const handleQuestionChange = (questionId, updatedProps) => {
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((question) =>
+        question.id === questionId ? { ...question, ...updatedProps } : question
+      )
     );
   };
 
-  const handleQuestionChange = (id, updatedProps) => {
-    setQuestions((prevQuestions) =>
-      prevQuestions.map((question) =>
-        question.id === id ? { ...question, ...updatedProps } : question
-      )
+  const handleTypeChange = (questionId, value) => {
+    const updatedQuestions = questions.map((question) =>
+      question.id === questionId
+        ? { ...question, type: value, options: [] }
+        : question
     );
+    setQuestions(updatedQuestions);
+  };
+
+  const handleOptionChange = (questionId, optionIndex, value) => {
+    const updatedQuestions = questions.map((question) => {
+      if (question.id === questionId) {
+        const updatedOptions = question.options.map((opt, idx) =>
+          idx === optionIndex ? { ...opt, label: value } : opt
+        );
+        return { ...question, options: updatedOptions };
+      }
+      return question;
+    });
+    setQuestions(updatedQuestions);
+  };
+
+  const addOption = (questionId) => {
+    const updatedQuestions = questions.map((question) =>
+      question.id === questionId
+        ? { ...question, options: [...question.options, { label: "" }] }
+        : question
+    );
+    setQuestions(updatedQuestions);
+  };
+
+  const removeOption = (questionId, optionIndex) => {
+    const updatedQuestions = questions.map((question) =>
+      question.id === questionId
+        ? {
+            ...question,
+            options: question.options.filter((_, idx) => idx !== optionIndex),
+          }
+        : question
+    );
+    setQuestions(updatedQuestions);
+  };
+
+  const renderOptions = (question) => {
+    if (["multipleChoice", "checkboxes", "dropdown"].includes(question.type)) {
+      return (
+        <div style={{ marginTop: "1em" }}>
+          {question.options.map((option, index) => (
+            <Form.Field key={index}>
+              <Form.Input
+                placeholder={`Option ${index + 1}`}
+                value={option.label}
+                onChange={(e) =>
+                  handleOptionChange(question.id, index, e.target.value)
+                }
+                style={{ maxWidth: "400px", marginBottom: "1em" }}
+                action={
+                  <Button
+                    icon
+                    color="red"
+                    onClick={() => removeOption(question.id, index)}
+                  >
+                    <Icon name="delete" />
+                  </Button>
+                }
+              />
+            </Form.Field>
+          ))}
+          <Button
+            icon
+            color="blue"
+            onClick={() => addOption(question.id)}
+            style={{ marginTop: "1em" }}
+          >
+            <Icon name="add" />
+            Add Option
+          </Button>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const renderQuestionInput = (question) => {
+    if (question.type === "fileUpload") {
+      return (
+        <Form.Input
+          type="file"
+          style={{ marginTop: "1em" }}
+          label="Upload a file"
+        />
+      );
+    }
+
+    if (question.type === "date") {
+      return (
+        <Form.Input
+          type="date"
+          style={{ marginTop: "1em" }}
+          label="Select a date"
+        />
+      );
+    }
+
+    return null;
   };
 
   const handleSubmitForm = (e) => {
@@ -110,56 +215,85 @@ function FormEditor({ onSubmit }) {
       setError("");
       const formId = `form-${Date.now()}`;
 
+      // Create the form data object in the required format
       const formData = {
-        id: formId,
+        form_id: formId,
         title: formTitle,
         description: formDescription,
-        questions,
+        questions: questions.map((q) => ({
+          id: q.id, // Use 'id' field
+          type: q.type,
+          text: q.text,
+          options: q.options,
+          required: q.required,
+        })),
+        // This will be filled later during the answer key creation
       };
 
-      // Save form to localStorage
       const storedForms = JSON.parse(localStorage.getItem("forms")) || [];
       const updatedForms = [...storedForms, formData];
       localStorage.setItem("forms", JSON.stringify(updatedForms));
 
-      // Log form data to console
-      console.log("Submitted Form Data:", formData);
-      console.log("Stored Forms in LocalStorage:", updatedForms);
+      // Log the form object to the console
+      console.log("Form Data:", formData);
 
       if (onSubmit) {
         onSubmit(formData);
       }
 
-      // Clear the form fields after submission
+      navigate("/answer-key", {
+        state: {
+          title: formTitle,
+          description: formDescription,
+          questions: questions.map(({ id, ...rest }) => ({
+            id,
+            ...rest,
+          })),
+        },
+      });
+
       setFormTitle("");
       setFormDescription("");
       setQuestions([]);
     }
   };
 
-  // Function to manually save form data to localStorage
   const handleSaveForm = () => {
     const formData = {
+      form_id: `form-${Date.now()}`,
       title: formTitle,
       description: formDescription,
-      questions,
+      questions: questions.map((q) => ({
+        id: q.id,
+        type: q.type,
+        text: q.text,
+        options: q.options,
+        required: q.required,
+      })),
     };
     localStorage.setItem("savedFormData", JSON.stringify(formData));
     alert("Form data saved!");
   };
 
-  // Function to clear text, type, and options fields in the form
   const handleClearTextFields = () => {
-    setFormTitle(""); // Clear form title
-    setFormDescription(""); // Clear form description
-    setQuestions([]); // Clear questions completely (including required fields)
-    setError(""); // Clear any existing error messages
-    localStorage.removeItem("savedFormData"); // Remove saved form data
+    setFormTitle("");
+    setFormDescription("");
+    setQuestions([]);
+    setError("");
+    localStorage.removeItem("savedFormData");
   };
 
   const handleAnswerKey = () => {
-    alert("This is the Answer Key section");
-    // You can add functionality to show or manage the answer keys
+    navigate("/answer-key", {
+      state: {
+        title: formTitle,
+        description: formDescription,
+        questions: questions.map(({ id, ...rest }) => ({
+          id,
+          ...rest,
+        })),
+      },
+    });
   };
 
   return (
@@ -168,7 +302,7 @@ function FormEditor({ onSubmit }) {
         raised
         style={{ padding: "20px", maxWidth: "1000px", margin: "auto" }}
       >
-        <SemanticForm onSubmit={handleSubmitForm}>
+        <Form onSubmit={handleSubmitForm}>
           <div style={{ marginBottom: "1em" }}>
             <label style={{ marginBottom: "5px", fontWeight: "bold" }}>
               Form Title
@@ -208,21 +342,94 @@ function FormEditor({ onSubmit }) {
                 style={{ marginBottom: "1em" }}
               >
                 <List.Item>
-                  <Header as="h5">
-                    Question {index + 1}.{" "}
-                    {/* Display "Question" followed by number */}
-                  </Header>
-                  <QuestionCard
-                    question={question}
-                    onChange={handleQuestionChange}
-                    onDelete={() => handleDeleteQuestion(question.id)}
-                  />
+                  <Grid>
+                    <Grid.Row>
+                      <Grid.Column width={10}>
+                        <label style={{ fontWeight: "bold" }}>{`Question ${
+                          index + 1
+                        }`}</label>
+                        <Form.Input
+                          fluid
+                          placeholder="Enter your question"
+                          value={question.text}
+                          onChange={(e) =>
+                            handleQuestionChange(question.id, {
+                              text: e.target.value,
+                            })
+                          }
+                          style={{ marginBottom: "1em" }}
+                        />
+                      </Grid.Column>
+                      <Grid.Column width={6}>
+                        <Form.Select
+                          fluid
+                          label="Question Type"
+                          options={[
+                            { key: "text", value: "text", text: "Text" },
+                            {
+                              key: "multipleChoice",
+                              value: "multipleChoice",
+                              text: "Multiple Choice",
+                            },
+                            {
+                              key: "checkboxes",
+                              value: "checkboxes",
+                              text: "Checkboxes",
+                            },
+                            {
+                              key: "dropdown",
+                              value: "dropdown",
+                              text: "Dropdown",
+                            },
+                            {
+                              key: "fileUpload",
+                              value: "fileUpload",
+                              text: "File Upload",
+                            },
+                            { key: "date", value: "date", text: "Date" },
+                          ]}
+                          value={question.type || ""}
+                          onChange={(e, { value }) =>
+                            handleTypeChange(question.id, value)
+                          }
+                          placeholder="Select Type"
+                        />
+                      </Grid.Column>
+                    </Grid.Row>
+                  </Grid>
+
+                  {renderOptions(question)}
+                  {renderQuestionInput(question)}
+
+                  <Grid style={{ marginTop: "1em" }} verticalAlign="middle">
+                    <Grid.Row columns={2}>
+                      <Grid.Column>
+                        <Form.Checkbox
+                          label="Required"
+                          checked={question.required || false}
+                          onChange={(e, { checked }) =>
+                            handleQuestionChange(question.id, {
+                              required: checked,
+                            })
+                          }
+                        />
+                      </Grid.Column>
+                      <Grid.Column textAlign="right">
+                        <Icon
+                          name="trash"
+                          color="red"
+                          size="large"
+                          onClick={() => handleDeleteQuestion(question.id)}
+                          style={{ cursor: "pointer" }}
+                        />
+                      </Grid.Column>
+                    </Grid.Row>
+                  </Grid>
                 </List.Item>
               </div>
             ))}
           </List>
 
-          {/* Buttons aligned in one line */}
           <div
             style={{
               display: "flex",
@@ -241,7 +448,6 @@ function FormEditor({ onSubmit }) {
               Add Question
             </Button>
 
-            {/* Answer Key Button */}
             <Button
               type="button"
               onClick={handleAnswerKey}
@@ -250,7 +456,7 @@ function FormEditor({ onSubmit }) {
             >
               Answer Key
             </Button>
-            {/* Save Form Icon Button */}
+
             <Button
               type="button"
               onClick={handleSaveForm}
@@ -264,9 +470,9 @@ function FormEditor({ onSubmit }) {
               type="button"
               onClick={handleClearTextFields}
               color="orange"
-              style={{ marginBottom: "1em", marginLeft: "10em" }}
+              style={{ marginBottom: "1em" }}
             >
-              Clear All Fields
+              Clear Responses
             </Button>
 
             <Button
@@ -280,7 +486,7 @@ function FormEditor({ onSubmit }) {
               Submit
             </Button>
           </div>
-        </SemanticForm>
+        </Form>
       </Segment>
     </Container>
   );

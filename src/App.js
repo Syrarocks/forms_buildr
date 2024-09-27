@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "semantic-ui-css/semantic.min.css";
 import { Container } from "semantic-ui-react";
-import FormEditor from "./FormEditor";
+// App.js
+import FormEditor from "./FormEditor"; // Use default import
+
 import FormDisplay from "./FormDisplay";
 import Navigation from "./Navigation";
 import Forms from "./Forms";
@@ -12,6 +14,7 @@ import ViewForm from "./ViewForm";
 import ViewSurveyForm from "./ViewSurveyForm";
 import FormResponses from "./FormResponses";
 import SurveyResponses from "./SurveyResponses";
+import AnswerKey from "./AnswerKey"; // <-- Import AnswerKey
 
 function App() {
   const [formData, setFormData] = useState(null);
@@ -79,6 +82,9 @@ function App() {
 
           {/* Form details route */}
           <Route path="/forms/:id/details" element={<FormDetails />} />
+
+          {/* Answer Key Route */}
+          <Route path="/answer-key" element={<AnswerKey />} />
         </Routes>
       </Container>
     </Router>

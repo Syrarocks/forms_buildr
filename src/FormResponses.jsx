@@ -48,18 +48,19 @@ function FormResponses() {
             {groupedResponses[formTitle].map((response, responseIndex) => (
               <Segment key={responseIndex}>
                 <Header as="h4">Response {responseIndex + 1}</Header>
-                {response.questions.map((question) => (
-                  <div key={question.id}>
-                    <p>
-                      <strong>{question.text}:</strong>{" "}
-                      {Array.isArray(response.answers[question.id])
-                        ? response.answers[question.id].join(", ")
-                        : typeof response.answers[question.id] === "object"
-                        ? JSON.stringify(response.answers[question.id]) // Handle objects
-                        : response.answers[question.id]}
-                    </p>
-                  </div>
-                ))}
+
+                {/* Display each question and its answer */}
+                {response.responses &&
+                  response.responses.map((answerObj, idx) => (
+                    <div key={idx}>
+                      <p>
+                        <strong>Question ID {answerObj.question_id}:</strong>{" "}
+                        {Array.isArray(answerObj.answer)
+                          ? answerObj.answer.join(", ")
+                          : answerObj.answer || "No answer provided"}
+                      </p>
+                    </div>
+                  ))}
               </Segment>
             ))}
           </Segment>

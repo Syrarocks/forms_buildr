@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 const Forms = () => {
   const [forms, setForms] = useState([]);
-  const navigate = useNavigate(); // Access the navigate function from react-router
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Retrieve forms from localStorage
@@ -14,19 +14,36 @@ const Forms = () => {
 
   const handleViewForm = (form) => {
     // Navigate to the form display page, passing the form data as state
-    navigate(`/forms/${form.id}`, { state: { form } });
+    navigate(`/forms/${form.form_id}`, { state: { form } });
+  };
+
+  const handleClearForms = () => {
+    // Clear forms from localStorage and state
+    localStorage.removeItem("forms");
+    setForms([]);
   };
 
   return (
-    <div>
+    <div style={{ position: "relative" }}>
+      {/* Clear Forms button at the top right */}
+      <Button
+        color="red"
+        onClick={handleClearForms}
+        style={{ position: "absolute", top: 0, right: 0 }}
+      >
+        Clear Forms
+      </Button>
+
       <h2>All Created Forms</h2>
       <List divided>
         {forms.length > 0 ? (
           forms.map((form) => (
-            <List.Item key={form.id}>
+            <List.Item key={form.form_id}>
               <Segment>
                 <List.Header>{form.title}</List.Header>
-                <List.Description>Form ID: {form.id}</List.Description>
+                <List.Description>
+                  <strong>Form ID: {form.form_id}</strong>
+                </List.Description>
                 <List.Description>{form.description}</List.Description>
 
                 <Button
