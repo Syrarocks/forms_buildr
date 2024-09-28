@@ -32,21 +32,29 @@ function FormResponses() {
 
   return (
     <Container>
-      <Header as="h2" textAlign="center">
-        Form Responses
-      </Header>
-
       {/* Clear Responses Button */}
-      <Button color="red" onClick={handleClearResponses}>
+      <Button
+        color="red"
+        onClick={handleClearResponses}
+        style={{ marginLeft: "750px" }}
+      >
         Clear Responses
       </Button>
 
       {Object.keys(groupedResponses).length > 0 ? (
         Object.keys(groupedResponses).map((formTitle, index) => (
-          <Segment key={index}>
+          <Segment
+            key={index}
+            style={{ maxWidth: "650px", margin: "20px auto" }}
+          >
+            {/* Set maxWidth and center using margin */}
             <Header as="h3">{formTitle}</Header>
             {groupedResponses[formTitle].map((response, responseIndex) => (
-              <Segment key={responseIndex}>
+              <Segment
+                key={responseIndex}
+                style={{ maxWidth: "650px", margin: "10px auto" }}
+              >
+                {/* Reduce the width of the inner segments */}
                 <Header as="h4">Response {responseIndex + 1}</Header>
 
                 {/* Display each question and its answer */}

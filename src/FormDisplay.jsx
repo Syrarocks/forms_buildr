@@ -167,8 +167,9 @@ function FormDisplay() {
   };
 
   return (
-    <Container style={{ maxWidth: "600px", margin: "auto" }}>
-      <Segment>
+    <Container style={{ maxWidth: "750px", margin: "auto", marginTop: "50px" }}>
+      <Segment style={{ maxWidth: "650px", margin: "20px auto" }}>
+        {/* Reduced the width of the segment */}
         <Header as="h2">{formData.title}</Header>
         {formData.description && <p>{formData.description}</p>}
         <Form onSubmit={handleSubmitResponses}>

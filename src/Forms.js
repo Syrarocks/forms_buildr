@@ -29,17 +29,29 @@ const Forms = () => {
       <Button
         color="red"
         onClick={handleClearForms}
-        style={{ position: "absolute", top: 0, right: 0 }}
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          marginRight: "240px",
+        }}
       >
         Clear Forms
       </Button>
 
-      <h2>All Created Forms</h2>
+      <h2 style={{ marginLeft: "240px" }}>All Created Forms</h2>
       <List divided>
         {forms.length > 0 ? (
           forms.map((form) => (
             <List.Item key={form.form_id}>
-              <Segment>
+              <Segment
+                style={{
+                  maxWidth: "650px",
+                  margin: "10px auto",
+                  marginTop: "10px",
+                }}
+              >
+                {/* Adjusted maxWidth and centered using margin */}
                 <List.Header>{form.title}</List.Header>
                 <List.Description>
                   <strong>Form ID: {form.form_id}</strong>

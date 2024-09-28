@@ -17,6 +17,7 @@ function FormEditor({ onSubmit }) {
   const [formDescription, setFormDescription] = useState(""); // Set initial state to empty string
   const [questions, setQuestions] = useState([]);
   const [errors, setErrors] = useState({}); // Object to store validation errors
+  const [hasSubmitted, setHasSubmitted] = useState(false); // Track form submission
   const questionRefs = useRef([]); // Array of references for each question input
   const navigate = useNavigate();
 
@@ -128,8 +129,6 @@ function FormEditor({ onSubmit }) {
         : question
     );
     setQuestions(updatedQuestions);
-
-    // Do not set errors when adding a new option
   };
 
   const removeOption = (questionId, optionIndex) => {
@@ -146,16 +145,21 @@ function FormEditor({ onSubmit }) {
 
   const handleSubmitForm = (e) => {
     e.preventDefault();
+    setHasSubmitted(true); // Set hasSubmitted to true on form submission
+
     const newErrors = {}; // Initialize a new errors object
     let firstErrorIndex = null; // To track the first error index
 
+    // Validate form title
     if (formTitle.trim() === "") {
       newErrors.formTitle = "Form title is required.";
     }
 
+    // Validate at least one question is added
     if (questions.length === 0) {
       newErrors.general = "Please add at least one question.";
     } else {
+      // Validate each question
       questions.forEach((question, index) => {
         if (!question.text || question.text.trim() === "") {
           newErrors[index] = "Question text is required.";
@@ -166,7 +170,7 @@ function FormEditor({ onSubmit }) {
         } else if (
           ["multipleChoice", "checkboxes", "dropdown"].includes(question.type)
         ) {
-          // Check options only during form submission
+          // Validate options for specific question types
           for (const option of question.options) {
             if (option.label.trim() === "") {
               newErrors[index] = "All options must have text.";
@@ -178,7 +182,7 @@ function FormEditor({ onSubmit }) {
       });
     }
 
-    setErrors(newErrors);
+    setErrors(newErrors); // Set validation errors
 
     // Scroll to the first error if there is one
     if (firstErrorIndex !== null) {
@@ -227,6 +231,7 @@ function FormEditor({ onSubmit }) {
       setFormDescription("");
       setQuestions([]);
       setErrors({});
+      setHasSubmitted(false); // Reset hasSubmitted after successful submission
     }
   };
 
@@ -252,6 +257,7 @@ function FormEditor({ onSubmit }) {
     setFormDescription("");
     setQuestions([]);
     setErrors({});
+    setHasSubmitted(false);
     localStorage.removeItem("savedFormData");
   };
 
@@ -288,31 +294,31 @@ function FormEditor({ onSubmit }) {
                   handleOptionChange(question.id, index, e.target.value)
                 }
                 style={{
-                  maxWidth: "400px",
+                  maxWidth: "247px",
                   marginBottom: "1em",
-                  backgroundColor: errors[questionIndex] ? "#ffcccc" : "", // Highlight if there is an error
                 }}
                 action={
-                  <Button
-                    icon
-                    color="red"
-                    onClick={() => removeOption(question.id, index)}
-                  >
-                    <Icon name="delete" />
-                  </Button>
+                  <>
+                    <Button
+                      icon
+                      color="blue"
+                      onClick={() => addOption(question.id)}
+                      style={{ marginLeft: "5px" }}
+                    >
+                      <Icon name="plus " />
+                    </Button>
+                    <Button
+                      icon
+                      color="lightgrey"
+                      onClick={() => removeOption(question.id, index)}
+                    >
+                      <Icon name="delete" />
+                    </Button>
+                  </>
                 }
               />
             </Form.Field>
           ))}
-          <Button
-            icon
-            color="blue"
-            onClick={() => addOption(question.id)}
-            style={{ marginTop: "1em" }}
-          >
-            <Icon name="add" />
-            Add Option
-          </Button>
         </div>
       );
     }
@@ -323,7 +329,7 @@ function FormEditor({ onSubmit }) {
     <Container style={{ maxWidth: "600px", margin: "auto" }}>
       <Segment
         raised
-        style={{ padding: "20px", maxWidth: "1000px", margin: "auto" }}
+        style={{ padding: "20px", maxWidth: "800px", margin: "auto" }}
       >
         <div style={{ marginBottom: "1em" }}>
           <Input
@@ -337,6 +343,11 @@ function FormEditor({ onSubmit }) {
               width: "40%",
             }}
           />
+          {hasSubmitted && errors.formTitle && (
+            <Header as="h4" color="red">
+              {errors.formTitle}
+            </Header>
+          )}
         </div>
 
         <div style={{ marginBottom: "1em" }}>
@@ -349,7 +360,7 @@ function FormEditor({ onSubmit }) {
           />
         </div>
 
-        {errors.general && (
+        {hasSubmitted && errors.general && (
           <Header as="h4" color="red">
             {errors.general}
           </Header>
@@ -369,7 +380,7 @@ function FormEditor({ onSubmit }) {
                       <Grid.Column width={10} style={{ paddingTop: "1.5em" }}>
                         {/* Reserve space for the error message */}
                         <div style={{ minHeight: "1.5em" }}>
-                          {errors[index] && (
+                          {hasSubmitted && errors[index] && (
                             <Header as="h4" color="red">
                               {errors[index]}
                             </Header>
@@ -389,14 +400,15 @@ function FormEditor({ onSubmit }) {
                           }
                           style={{
                             marginBottom: "1em",
-                            backgroundColor: errors[index] ? "#ffcccc" : "", // Highlight if there is an error
+                            backgroundColor:
+                              hasSubmitted && errors[index] ? "#ffcccc" : "", // Highlight if there is an error
                           }}
                         />
                       </Grid.Column>
                       <Grid.Column width={6} style={{ paddingTop: "1.5em" }}>
                         {/* Reserve space for the error message */}
                         <div style={{ minHeight: "1.5em" }}>
-                          {errors[`type${index}`] && (
+                          {hasSubmitted && errors[`type${index}`] && (
                             <Header as="h4" color="red">
                               {errors[`type${index}`]}
                             </Header>
@@ -435,9 +447,10 @@ function FormEditor({ onSubmit }) {
                           }
                           placeholder="Select Type"
                           style={{
-                            backgroundColor: errors[`type${index}`]
-                              ? "#ffcccc"
-                              : "", // Highlight if there is an error
+                            backgroundColor:
+                              hasSubmitted && errors[`type${index}`]
+                                ? "#ffcccc"
+                                : "", // Highlight if there is an error
                           }}
                         />
                       </Grid.Column>
@@ -480,6 +493,7 @@ function FormEditor({ onSubmit }) {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              flexWrap: "wrap", // Allows buttons to wrap if space is limited
             }}
           >
             <Button
@@ -493,47 +507,55 @@ function FormEditor({ onSubmit }) {
               Add Question
             </Button>
 
-            <Button
-              type="button"
-              onClick={handleClearTextFields}
-              color="orange"
-              style={{ marginBottom: "1em" }}
-            >
-              Clear
-            </Button>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <Button
+                type="button"
+                onClick={handleClearTextFields}
+                color="orange"
+                style={{ marginBottom: "1em", marginRight: "10px" }} // Adjust margin for spacing
+              >
+                Clear
+              </Button>
 
-            {isFormValid() && (
-              <>
-                <Button
-                  type="button"
-                  onClick={handleAnswerKey}
-                  color="green"
-                  style={{ marginBottom: "1em" }}
-                >
-                  Answer Key
-                </Button>
+              {isFormValid() && (
+                <>
+                  <Button
+                    type="button"
+                    onClick={handleAnswerKey}
+                    color="green"
+                    style={{ marginBottom: "1em", marginRight: "180px" }} // Adjust margin for spacing
+                  >
+                    Answer Key
+                  </Button>
 
-                <Button
-                  type="button"
-                  onClick={handleSaveForm}
-                  color="black"
-                  style={{ marginBottom: "1em" }}
-                >
-                  Save Form
-                </Button>
+                  <Button
+                    icon
+                    color="grey"
+                    onClick={handleSaveForm}
+                    disabled={!isFormValid()}
+                    style={{
+                      cursor: "pointer",
+                      marginBottom: "1em",
+                      marginRight: "10px",
+                    }} // Adjust margin for spacing
+                    title="Save Form"
+                  >
+                    <Icon name="save" />
+                  </Button>
 
-                <Button
-                  type="submit"
-                  primary
-                  icon
-                  labelPosition="left"
-                  style={{ marginBottom: "1em" }}
-                >
-                  <Icon name="paper plane" />
-                  Submit
-                </Button>
-              </>
-            )}
+                  <Button
+                    type="submit"
+                    primary
+                    icon
+                    labelPosition="left"
+                    style={{ marginBottom: "1em" }}
+                  >
+                    <Icon name="paper plane" />
+                    Submit
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </Form>
       </Segment>
