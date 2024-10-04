@@ -56,11 +56,19 @@ function AnswerKey() {
     storedAnswerKeys.push(answerKeyObject);
     localStorage.setItem("answerKeys", JSON.stringify(storedAnswerKeys));
 
+    // Update the saved answer keys state
+    setSavedAnswerKeys(storedAnswerKeys);
+
     // Log the answer key object to the console
     console.log(answerKeyObject);
 
     setSubmitted(true);
     alert("Answer key saved!");
+
+    // Hide the success message after 3 seconds
+    setTimeout(() => {
+      setSubmitted(false);
+    }, 3000);
   };
 
   const renderQuestion = (question) => {
@@ -155,27 +163,33 @@ function AnswerKey() {
   };
 
   return (
-    <Container style={{ maxWidth: "600px", margin: "auto" }}>
-      <Segment>
-        <Header as="h2">Answer Key</Header>
-        <Form>
-          {questions.length > 0 ? (
-            questions.map((question) => (
-              <div key={question.id} style={{ marginBottom: "1.5em" }}>
-                {renderQuestion(question)}
-              </div>
-            ))
-          ) : (
-            <p>No questions available.</p>
-          )}
-          <Button type="button" color="green" onClick={handleSaveAnswerKey}>
-            Save Answer Key
-          </Button>
-        </Form>
-      </Segment>
+    <Container style={{ maxWidth: "650px", margin: "auto" }}>
+      {!submitted && ( // Conditionally render the "Answer Key" input form
+        <Segment style={{ maxWidth: "650px", margin: "auto" }}>
+          <Header as="h2">Answer Key</Header>
+          <Form>
+            {questions.length > 0 ? (
+              questions.map((question) => (
+                <div key={question.id} style={{ marginBottom: "1.5em" }}>
+                  {renderQuestion(question)}
+                </div>
+              ))
+            ) : (
+              <p>No questions available.</p>
+            )}
+            <Button type="button" color="green" onClick={handleSaveAnswerKey}>
+              Save Answer Key
+            </Button>
+          </Form>
+        </Segment>
+      )}
 
       {submitted && (
-        <Segment color="green" inverted>
+        <Segment
+          style={{ maxWidth: "650px", margin: "20px auto" }}
+          color="green"
+          inverted
+        >
           <Header as="h4">
             <Icon name="check" />
             The answer key has been successfully saved!
@@ -183,13 +197,18 @@ function AnswerKey() {
         </Segment>
       )}
 
-      <Segment>
-        <Header as="h3">Stored Answer Keys</Header>
-        {savedAnswerKeys.length ? (
+      {savedAnswerKeys.length > 0 && (
+        <Segment style={{ maxWidth: "650px", margin: "auto" }}>
+          <Header as="h3">Stored Answer Keys</Header>
           <List divided>
             {savedAnswerKeys.map((savedKey, idx) =>
-              savedKey.answer_key && Array.isArray(savedKey.answer_key)
-                ? savedKey.answer_key.map((item, index) => (
+              savedKey.answer_key && Array.isArray(savedKey.answer_key) ? (
+                <Segment
+                  key={idx}
+                  style={{ maxWidth: "600px", margin: "auto" }}
+                >
+                  <Header as="h4">Answer Key {idx + 1}</Header>
+                  {savedKey.answer_key.map((item, index) => (
                     <List.Item key={`${idx}-${index}`}>
                       <strong>Question ID: {item.question_id}</strong>
                       <br />
@@ -198,14 +217,13 @@ function AnswerKey() {
                         ? item.answer.join(", ")
                         : item.answer}
                     </List.Item>
-                  ))
-                : null
+                  ))}
+                </Segment>
+              ) : null
             )}
           </List>
-        ) : (
-          <p>No answer keys saved yet.</p>
-        )}
-      </Segment>
+        </Segment>
+      )}
     </Container>
   );
 }

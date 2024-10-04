@@ -1,8 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Container, Segment, Header, Button } from "semantic-ui-react";
+import {
+  Container,
+  Segment,
+  Header,
+  Button,
+  Form,
+  Checkbox,
+  Radio,
+} from "semantic-ui-react";
 
 function FormResponses() {
   const [groupedResponses, setGroupedResponses] = useState({});
+  const [selectedResponse, setSelectedResponse] = useState(null);
 
   useEffect(() => {
     // Retrieve form responses from localStorage
@@ -11,10 +20,7 @@ function FormResponses() {
 
     // Group responses by form title
     const grouped = savedResponses.reduce((acc, response) => {
-      const formTitle =
-        response.formTitle && response.formTitle.trim() !== ""
-          ? response.formTitle
-          : "Untitled Form"; // Use 'formTitle' to group responses
+      const formTitle = response.form_id || "Untitled Form";
       if (!acc[formTitle]) {
         acc[formTitle] = [];
       }
@@ -28,9 +34,129 @@ function FormResponses() {
   const handleClearResponses = () => {
     // Clear the form responses from localStorage
     localStorage.removeItem("formResponses");
-
     // Clear the local state
     setGroupedResponses({});
+    setSelectedResponse(null);
+  };
+
+  const handleViewResponse = (response) => {
+    setSelectedResponse(response); // Set the selected response
+  };
+
+  const renderQuestionOptions = (question) => {
+    switch (question.question_type) {
+      case "multipleChoice":
+        return (
+          <div>
+            {question.options.map((option, index) => (
+              <Form.Field
+                key={index}
+                style={{
+                  marginBottom: "0.5em",
+                  backgroundColor:
+                    question.answer === option.label
+                      ? "lightblue"
+                      : "transparent",
+                  padding: "5px",
+                  borderRadius: "5px",
+                  color: question.answer === option.label ? "#000" : "#000", // Highlight text color
+                  fontWeight:
+                    question.answer === option.label ? "bold" : "normal",
+                }}
+              >
+                <Radio
+                  label={option.label}
+                  checked={question.answer === option.label}
+                  readOnly
+                  disabled
+                />
+              </Form.Field>
+            ))}
+          </div>
+        );
+      case "checkboxes":
+        return (
+          <div>
+            {question.options.map((option, index) => (
+              <Form.Field
+                key={index}
+                style={{
+                  marginBottom: "0.5em",
+                  backgroundColor: question.answer.includes(option.label)
+                    ? "lightblue"
+                    : "transparent",
+                  padding: "5px",
+                  borderRadius: "5px",
+                  color: question.answer.includes(option.label)
+                    ? "#000"
+                    : "#000", // Highlight text color
+                  fontWeight: question.answer.includes(option.label)
+                    ? "bold"
+                    : "normal",
+                }}
+              >
+                <Checkbox
+                  label={option.label}
+                  checked={
+                    Array.isArray(question.answer) &&
+                    question.answer.includes(option.label)
+                  }
+                  readOnly
+                  disabled
+                />
+              </Form.Field>
+            ))}
+          </div>
+        );
+      case "dropdown":
+        return (
+          <Form.Select
+            fluid
+            selection
+            options={question.options.map((option) => ({
+              key: option.label,
+              text: option.label,
+              value: option.label,
+            }))}
+            value={question.answer}
+            disabled
+            style={{
+              backgroundColor: "lightblue",
+              color: "#000", // Highlight text color
+              fontWeight: "bold",
+            }}
+          />
+        );
+      case "text":
+        return (
+          <input
+            value={question.answer}
+            readOnly
+            disabled
+            style={{
+              backgroundColor: "lightblue",
+              color: "#000",
+              fontWeight: "bold",
+            }} // Highlight text color
+          />
+        );
+      case "date":
+        return (
+          <input
+            type="date"
+            value={question.answer}
+            readOnly
+            disabled
+            style={{
+              backgroundColor: "lightblue",
+              color: "#000",
+              fontWeight: "bold",
+            }} // Highlight text color
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -44,56 +170,85 @@ function FormResponses() {
         Clear Responses
       </Button>
 
-      {Object.keys(groupedResponses).length > 0 ? (
-        Object.keys(groupedResponses).map((formTitle, index) => (
-          <Segment
-            key={index}
-            style={{ maxWidth: "650px", margin: "20px auto" }}
-          >
-            {/* Display form title with red color and response count */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Header as="h3" color="red">
-                {formTitle}
-              </Header>
-              <span style={{ fontSize: "1.2em", color: "gray" }}>
-                Total Responses: {groupedResponses[formTitle].length}
-              </span>
-            </div>
-            {groupedResponses[formTitle].map((response, responseIndex) => (
-              <Segment
-                key={responseIndex}
-                style={{ maxWidth: "650px", margin: "10px auto" }}
-              >
-                {/* Reduce the width of the inner segments */}
-                <Header as="h4">Response {responseIndex + 1}</Header>
+      {selectedResponse ? (
+        // Display the selected response's details
+        <Segment style={{ maxWidth: "650px", margin: "20px auto" }}>
+          <Header as="h3" color="red">
+            Form ID: {selectedResponse.form_id}
+          </Header>
+          <p>
+            <strong>Name:</strong> {selectedResponse.name}
+          </p>
+          <p>
+            <strong>Roll No:</strong> {selectedResponse.rollNo}
+          </p>
 
-                {/* Display each question and its answer */}
-                {Array.isArray(response.responses) ? (
-                  response.responses.map((answerObj, idx) => (
-                    <div key={idx}>
-                      <p>
-                        <strong>Question ID {answerObj.question_id}:</strong>{" "}
-                        {Array.isArray(answerObj.answer)
-                          ? answerObj.answer.join(", ")
-                          : answerObj.answer || "No answer provided"}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p>No answers available</p>
-                )}
-              </Segment>
-            ))}
-          </Segment>
-        ))
+          <Form>
+            {Array.isArray(selectedResponse.responses) &&
+              selectedResponse.responses.map((question, idx) => (
+                <Form.Field key={idx} style={{ marginBottom: "1.5em" }}>
+                  <label style={{ color: "#000", fontWeight: "bold" }}>
+                    {question.question_text}
+                  </label>
+                  {renderQuestionOptions(question)}
+                </Form.Field>
+              ))}
+          </Form>
+          <Button
+            onClick={() => setSelectedResponse(null)}
+            style={{ backgroundColor: "black", color: "white" }}
+          >
+            Back
+          </Button>
+        </Segment>
       ) : (
-        <p>No responses available</p>
+        // Display the list of form responses
+        <>
+          {Object.keys(groupedResponses).length > 0 ? (
+            Object.keys(groupedResponses).map((formTitle, index) => (
+              <Segment
+                key={index}
+                style={{ maxWidth: "650px", margin: "20px auto" }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Header as="h3" color="red">
+                    {formTitle}
+                  </Header>
+                  <span style={{ fontSize: "1.2em", color: "gray" }}>
+                    Total Responses: {groupedResponses[formTitle]?.length || 0}
+                  </span>
+                </div>
+                {groupedResponses[formTitle]?.map((response, responseIndex) => (
+                  <Segment
+                    key={responseIndex}
+                    style={{ maxWidth: "650px", margin: "10px auto" }}
+                  >
+                    <p>
+                      <strong>Name:</strong> {response.name}
+                    </p>
+                    <p>
+                      <strong>Roll No:</strong> {response.rollNo}
+                    </p>
+                    <Button
+                      onClick={() => handleViewResponse(response)}
+                      style={{ marginTop: "1em" }}
+                    >
+                      View Response
+                    </Button>
+                  </Segment>
+                ))}
+              </Segment>
+            ))
+          ) : (
+            <p>No responses available</p>
+          )}
+        </>
       )}
     </Container>
   );

@@ -13,12 +13,12 @@ import {
 import { useNavigate } from "react-router-dom";
 
 function FormEditor({ onSubmit }) {
-  const [formTitle, setFormTitle] = useState(""); // Set initial state to empty string
-  const [formDescription, setFormDescription] = useState(""); // Set initial state to empty string
+  const [formTitle, setFormTitle] = useState("");
+  const [formDescription, setFormDescription] = useState("");
   const [questions, setQuestions] = useState([]);
-  const [errors, setErrors] = useState({}); // Object to store validation errors
-  const [hasSubmitted, setHasSubmitted] = useState(false); // Track form submission
-  const questionRefs = useRef([]); // Array of references for each question input
+  const [errors, setErrors] = useState({});
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const questionRefs = useRef([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,7 +40,6 @@ function FormEditor({ onSubmit }) {
     };
     setQuestions((prevQuestions) => [...prevQuestions, newQuestion]);
 
-    // Scroll to the new question after it is added
     setTimeout(() => {
       questionRefs.current[questions.length]?.scrollIntoView({
         behavior: "smooth",
@@ -56,7 +55,7 @@ function FormEditor({ onSubmit }) {
         id: index + 1,
       }));
     setQuestions(updatedQuestions);
-    setErrors({}); // Clear errors after deleting a question
+    setErrors({});
   };
 
   const handleQuestionChange = (questionId, updatedProps) => {
@@ -66,11 +65,10 @@ function FormEditor({ onSubmit }) {
       )
     );
 
-    // Clear the error for this specific question when the text is changed
     setErrors((prevErrors) => {
       const newErrors = { ...prevErrors };
       if (updatedProps.text) {
-        delete newErrors[questionId - 1]; // Remove the error for this question
+        delete newErrors[questionId - 1];
       }
       return newErrors;
     });
@@ -85,17 +83,16 @@ function FormEditor({ onSubmit }) {
             options: ["multipleChoice", "checkboxes", "dropdown"].includes(
               value
             )
-              ? [{ label: "" }] // Add one empty option by default
+              ? [{ label: "" }]
               : [],
           }
         : question
     );
     setQuestions(updatedQuestions);
 
-    // Clear the error for this specific question type when it is changed
     setErrors((prevErrors) => {
       const newErrors = { ...prevErrors };
-      delete newErrors[`type${questionId - 1}`]; // Remove the error for this question type
+      delete newErrors[`type${questionId - 1}`];
       return newErrors;
     });
   };
@@ -112,11 +109,10 @@ function FormEditor({ onSubmit }) {
     });
     setQuestions(updatedQuestions);
 
-    // Clear the error for this specific option when the text is changed
     setErrors((prevErrors) => {
       const newErrors = { ...prevErrors };
       if (value.trim() !== "") {
-        delete newErrors[questionId - 1]; // Remove the error for this question's option
+        delete newErrors[questionId - 1];
       }
       return newErrors;
     });
@@ -145,21 +141,18 @@ function FormEditor({ onSubmit }) {
 
   const handleSubmitForm = (e) => {
     e.preventDefault();
-    setHasSubmitted(true); // Set hasSubmitted to true on form submission
+    setHasSubmitted(true);
 
-    const newErrors = {}; // Initialize a new errors object
-    let firstErrorIndex = null; // To track the first error index
+    const newErrors = {};
+    let firstErrorIndex = null;
 
-    // Validate form title
     if (formTitle.trim() === "") {
       newErrors.formTitle = "Form title is required.";
     }
 
-    // Validate at least one question is added
     if (questions.length === 0) {
       newErrors.general = "Please add at least one question.";
     } else {
-      // Validate each question
       questions.forEach((question, index) => {
         if (!question.text || question.text.trim() === "") {
           newErrors[index] = "Question text is required.";
@@ -170,7 +163,6 @@ function FormEditor({ onSubmit }) {
         } else if (
           ["multipleChoice", "checkboxes", "dropdown"].includes(question.type)
         ) {
-          // Validate options for specific question types
           for (const option of question.options) {
             if (option.label.trim() === "") {
               newErrors[index] = "All options must have text.";
@@ -182,16 +174,14 @@ function FormEditor({ onSubmit }) {
       });
     }
 
-    setErrors(newErrors); // Set validation errors
+    setErrors(newErrors);
 
-    // Scroll to the first error if there is one
     if (firstErrorIndex !== null) {
       questionRefs.current[firstErrorIndex]?.scrollIntoView({
         behavior: "smooth",
       });
     }
 
-    // If there are no errors, proceed with form submission
     if (Object.keys(newErrors).length === 0) {
       const formId = `form-${Date.now()}`;
 
@@ -207,7 +197,7 @@ function FormEditor({ onSubmit }) {
           required: q.required,
         })),
       };
-      // Log form data to the console
+
       console.log("Form Submitted:", formData);
 
       const storedForms = JSON.parse(localStorage.getItem("forms")) || [];
@@ -233,25 +223,8 @@ function FormEditor({ onSubmit }) {
       setFormDescription("");
       setQuestions([]);
       setErrors({});
-      setHasSubmitted(false); // Reset hasSubmitted after successful submission
+      setHasSubmitted(false);
     }
-  };
-
-  const handleSaveForm = () => {
-    const formData = {
-      form_id: `form-${Date.now()}`,
-      title: formTitle,
-      description: formDescription,
-      questions: questions.map((q) => ({
-        id: q.id,
-        type: q.type,
-        text: q.text,
-        options: q.options,
-        required: q.required,
-      })),
-    };
-    localStorage.setItem("savedFormData", JSON.stringify(formData));
-    alert("Form data saved!");
   };
 
   const handleClearTextFields = () => {
@@ -307,8 +280,7 @@ function FormEditor({ onSubmit }) {
                       onClick={() => addOption(question.id)}
                       style={{ marginLeft: "5px" }}
                     >
-                      <Icon name="plus" />{" "}
-                      {/* Corrected: Removed extra space */}
+                      <Icon name="plus" />
                     </Button>
                     <Button
                       icon
@@ -374,14 +346,13 @@ function FormEditor({ onSubmit }) {
             {questions.map((question, index) => (
               <div
                 key={question.id}
-                ref={(el) => (questionRefs.current[index] = el)} // Add ref for each question
+                ref={(el) => (questionRefs.current[index] = el)}
                 style={{ marginBottom: "1em" }}
               >
                 <List.Item>
                   <Grid>
                     <Grid.Row>
                       <Grid.Column width={10} style={{ paddingTop: "1.5em" }}>
-                        {/* Reserve space for the error message */}
                         <div style={{ minHeight: "1.5em" }}>
                           {hasSubmitted && errors[index] && (
                             <Header as="h4" color="red">
@@ -404,12 +375,11 @@ function FormEditor({ onSubmit }) {
                           style={{
                             marginBottom: "1em",
                             backgroundColor:
-                              hasSubmitted && errors[index] ? "#ffcccc" : "", // Highlight if there is an error
+                              hasSubmitted && errors[index] ? "#ffcccc" : "",
                           }}
                         />
                       </Grid.Column>
                       <Grid.Column width={6} style={{ paddingTop: "1.5em" }}>
-                        {/* Reserve space for the error message */}
                         <div style={{ minHeight: "1.5em" }}>
                           {hasSubmitted && errors[`type${index}`] && (
                             <Header as="h4" color="red">
@@ -453,7 +423,7 @@ function FormEditor({ onSubmit }) {
                             backgroundColor:
                               hasSubmitted && errors[`type${index}`]
                                 ? "#ffcccc"
-                                : "", // Highlight if there is an error
+                                : "",
                           }}
                         />
                       </Grid.Column>
@@ -496,7 +466,7 @@ function FormEditor({ onSubmit }) {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              flexWrap: "wrap", // Allows buttons to wrap if space is limited
+              flexWrap: "wrap",
             }}
           >
             <Button
@@ -515,7 +485,7 @@ function FormEditor({ onSubmit }) {
                 type="button"
                 onClick={handleClearTextFields}
                 color="orange"
-                style={{ marginBottom: "1em", marginRight: "10px" }} // Adjust margin for spacing
+                style={{ marginBottom: "1em", marginRight: "10px" }}
               >
                 Clear
               </Button>
@@ -526,24 +496,9 @@ function FormEditor({ onSubmit }) {
                     type="button"
                     onClick={handleAnswerKey}
                     color="green"
-                    style={{ marginBottom: "1em", marginRight: "180px" }} // Adjust margin for spacing
+                    style={{ marginBottom: "1em", marginRight: "180px" }}
                   >
                     Answer Key
-                  </Button>
-
-                  <Button
-                    icon
-                    color="grey"
-                    onClick={handleSaveForm}
-                    disabled={!isFormValid()}
-                    style={{
-                      cursor: "pointer",
-                      marginBottom: "1em",
-                      marginRight: "10px",
-                    }} // Adjust margin for spacing
-                    title="Save Form"
-                  >
-                    <Icon name="save" />
                   </Button>
 
                   <Button

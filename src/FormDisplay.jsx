@@ -12,6 +12,8 @@ import { useLocation } from "react-router-dom";
 function FormDisplay() {
   const location = useLocation();
   const formData = location.state?.form || {}; // Access the form data
+  const [name, setName] = useState(""); // State for Name
+  const [rollNo, setRollNo] = useState(""); // State for Roll No
   const [responses, setResponses] = useState({});
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -51,12 +53,22 @@ function FormDisplay() {
       }
     });
 
+    if (!name || !rollNo) {
+      setError("Please fill in both Name and Roll No.");
+      hasBlankOption = true;
+    }
+
     if (!hasBlankOption) {
       // Create the response object in the desired format
       const submissionData = {
-        formTitle: formData.title || "Untitled Form", // Add form title
+        form_id: formData.form_id || "form-" + Date.now(), // Use form_id or generate one
+        name, // Include Name
+        rollNo, // Include Roll No
         responses: formData.questions.map((question) => ({
           question_id: question.id,
+          question_text: question.text,
+          question_type: question.type,
+          options: question.options,
           answer: responses[question.id],
         })),
       };
@@ -76,6 +88,8 @@ function FormDisplay() {
 
       setSubmitted(true);
       setError("");
+      setName(""); // Clear the Name field
+      setRollNo(""); // Clear the Roll No field
     }
   };
 
@@ -171,8 +185,26 @@ function FormDisplay() {
     <Container style={{ maxWidth: "750px", margin: "auto", marginTop: "50px" }}>
       <Segment style={{ maxWidth: "650px", margin: "20px auto" }}>
         <Header as="h2">{formData.title}</Header>
-        {formData.description && <p>{formData.description}</p>}
+
         <Form onSubmit={handleSubmitResponses}>
+          {/* Name and Roll No Fields */}
+          <Form.Field required>
+            <label>Name</label>
+            <input
+              placeholder="Enter your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </Form.Field>
+          <Form.Field required>
+            <label>Roll No</label>
+            <input
+              placeholder="Enter your roll number"
+              value={rollNo}
+              onChange={(e) => setRollNo(e.target.value)}
+            />
+          </Form.Field>
+
           {formData.questions &&
             formData.questions.map((question) => (
               <div key={question.id} style={{ marginBottom: "1.5em" }}>
