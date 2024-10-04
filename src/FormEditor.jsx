@@ -207,6 +207,8 @@ function FormEditor({ onSubmit }) {
           required: q.required,
         })),
       };
+      // Log form data to the console
+      console.log("Form Submitted:", formData);
 
       const storedForms = JSON.parse(localStorage.getItem("forms")) || [];
       const updatedForms = [...storedForms, formData];
@@ -305,11 +307,12 @@ function FormEditor({ onSubmit }) {
                       onClick={() => addOption(question.id)}
                       style={{ marginLeft: "5px" }}
                     >
-                      <Icon name="plus " />
+                      <Icon name="plus" />{" "}
+                      {/* Corrected: Removed extra space */}
                     </Button>
                     <Button
                       icon
-                      color="lightgrey"
+                      color="grey"
                       onClick={() => removeOption(question.id, index)}
                     >
                       <Icon name="delete" />

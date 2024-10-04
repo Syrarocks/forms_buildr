@@ -2,26 +2,25 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "semantic-ui-css/semantic.min.css";
 import { Container } from "semantic-ui-react";
-// App.js
-import FormEditor from "./FormEditor"; // Use default import
-
+import FormEditor from "./FormEditor";
 import FormDisplay from "./FormDisplay";
 import Navigation from "./Navigation";
 import Forms from "./Forms";
 import FormDetails from "./FormDetails";
 import SurveyForms from "./SurveyForms";
-import ViewForm from "./ViewForm";
-import ViewSurveyForm from "./ViewSurveyForm";
+import SurveyDisplay from "./SurveyFormDisplay"; // Import SurveyDisplay component
 import FormResponses from "./FormResponses";
+import AnswerKey from "./AnswerKey";
+import SurveyFormsList from "./SurveyFormsList"; // Import the new component
+
+import SurveyFormDisplay from "./SurveyFormDisplay";
 import SurveyResponses from "./SurveyResponses";
-import AnswerKey from "./AnswerKey"; // <-- Import AnswerKey
 
 function App() {
   const [formData, setFormData] = useState(null);
   const [surveyFormData, setSurveyFormData] = useState(null);
   const [surveyResponses, setSurveyResponses] = useState([]);
 
-  // Load saved survey responses from localStorage
   useEffect(() => {
     const savedResponses = JSON.parse(localStorage.getItem("surveyResponses"));
     if (savedResponses) {
@@ -29,7 +28,6 @@ function App() {
     }
   }, []);
 
-  // Save survey responses to localStorage when they change
   useEffect(() => {
     localStorage.setItem("surveyResponses", JSON.stringify(surveyResponses));
   }, [surveyResponses]);
@@ -47,44 +45,25 @@ function App() {
       <Navigation />
       <Container>
         <Routes>
-          {/* Home route */}
           <Route
             path="/"
             element={<FormEditor onSubmit={handleFormSubmit} />}
           />
-
-          {/* Forms list route */}
           <Route path="/forms" element={<Forms />} />
-
-          {/* Form display route (using form ID) */}
+          <Route path="/survey-display" element={<SurveyDisplay />} />
           <Route path="/forms/:id" element={<FormDisplay />} />
-
-          {/* Survey forms route */}
           <Route
             path="/survey-forms"
             element={<SurveyForms onSubmit={handleSurveyFormSubmit} />}
           />
-
-          {/* View individual form */}
-          <Route
-            path="/view-form"
-            element={<ViewForm formData={surveyFormData} />}
-          />
-
-          {/* View survey form */}
-          <Route path="/view-survey-form" element={<ViewSurveyForm />} />
-
-          {/* Form responses */}
+          <Route path="/survey-display" element={<SurveyDisplay />} />{" "}
+          {/* Add SurveyDisplay route */}
           <Route path="/form-responses" element={<FormResponses />} />
-
-          {/* Survey responses */}
-          <Route path="/survey-responses" element={<SurveyResponses />} />
-
-          {/* Form details route */}
           <Route path="/forms/:id/details" element={<FormDetails />} />
-
-          {/* Answer Key Route */}
           <Route path="/answer-key" element={<AnswerKey />} />
+          <Route path="/survey-forms-list" element={<SurveyFormsList />} />
+          <Route path="/survey-form-display" element={<SurveyFormDisplay />} />
+          <Route path="/survey-responses" element={<SurveyResponses />} />
         </Routes>
       </Container>
     </Router>

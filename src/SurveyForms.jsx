@@ -9,21 +9,17 @@ import {
   Message,
   Icon,
   Grid,
-  Checkbox,
+  Header,
 } from "semantic-ui-react";
 
 function SurveyForms({ onSubmit }) {
-  const formId = `form-${Date.now()}`; // Corrected template literal
+  const formId = `form-${Date.now()}`;
   const [questions, setQuestions] = useState([]);
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [error, setError] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const lastQuestionRef = useRef(null);
 
-  const lastQuestionRef = useRef(null); // Use a ref to point to the last added question
-
-  // Load form data from localStorage when the component mounts
   useEffect(() => {
     const savedFormData = JSON.parse(
       localStorage.getItem("savedSurveyFormData")
@@ -35,32 +31,39 @@ function SurveyForms({ onSubmit }) {
     }
   }, []);
 
-  const handleQuestionChange = (index, value) => {
-    const newQuestions = [...questions];
-    newQuestions[index].questionText = value;
-    setQuestions(newQuestions);
+  useEffect(() => {
+    if (submitted) {
+      const timer = setTimeout(() => {
+        setSubmitted(false);
+      }, 5000); // 6000 milliseconds = 6 seconds
+
+      // Cleanup timer if the component is unmounted or if submitted changes
+      return () => clearTimeout(timer);
+    }
+  }, [submitted]);
+
+  const handleClearFields = () => {
+    setFormTitle("");
+    setFormDescription("");
+    setQuestions([]);
+    setSubmitted(false);
+    localStorage.removeItem("savedSurveyFormData");
   };
 
-  const handleRequiredChange = (index, value) => {
+  const handleQuestionChange = (index, value) => {
     const newQuestions = [...questions];
-    newQuestions[index].required = value;
+    newQuestions[index].text = value;
     setQuestions(newQuestions);
   };
 
   const handleQuestionTypeChange = (index, value) => {
     const newQuestions = [...questions];
-    newQuestions[index].questionType = value;
+    newQuestions[index].type = value;
 
     if (value === "checkboxes") {
-      newQuestions[index].checkboxOptions = [
-        { id: Date.now(), label: "", checked: false },
-      ];
-    } else if (value === "ratings") {
-      newQuestions[index].checkboxOptions = [];
-      newQuestions[index].selectedRating = 0;
-    } else if (value === "text") {
-      newQuestions[index].checkboxOptions = [];
-      newQuestions[index].textAnswer = "";
+      newQuestions[index].options = [{ label: "" }];
+    } else {
+      newQuestions[index].options = [];
     }
 
     setQuestions(newQuestions);
@@ -70,13 +73,11 @@ function SurveyForms({ onSubmit }) {
     setQuestions((prevQuestions) => [
       ...prevQuestions,
       {
-        id: `${Date.now()}`,
-        questionText: "",
-        questionType: "",
-        selectedRating: 0,
-        checkboxOptions: [{ id: Date.now(), label: "", checked: false }],
-        textAnswer: "",
+        id: prevQuestions.length + 1,
+        text: "",
+        type: "",
         required: false,
+        options: [],
       },
     ]);
 
@@ -91,128 +92,57 @@ function SurveyForms({ onSubmit }) {
     setQuestions(newQuestions);
   };
 
+  const handleRequiredChange = (index, value) => {
+    const newQuestions = [...questions];
+    newQuestions[index].required = value;
+    setQuestions(newQuestions);
+  };
+
   const handleAddOption = (questionIndex) => {
     const newQuestions = [...questions];
-    newQuestions[questionIndex].checkboxOptions.push({
-      id: Date.now(),
-      label: "",
-      checked: false,
-    });
+    newQuestions[questionIndex].options.push({ label: "" });
     setQuestions(newQuestions);
   };
 
   const handleRemoveOption = (questionIndex, optionIndex) => {
     const newQuestions = [...questions];
-    newQuestions[questionIndex].checkboxOptions.splice(optionIndex, 1);
+    newQuestions[questionIndex].options.splice(optionIndex, 1);
     setQuestions(newQuestions);
   };
 
   const handleLabelChange = (questionIndex, optionIndex, label) => {
     const newQuestions = [...questions];
-    newQuestions[questionIndex].checkboxOptions[optionIndex].label = label;
+    newQuestions[questionIndex].options[optionIndex].label = label;
     setQuestions(newQuestions);
-  };
-
-  const handleSaveForm = () => {
-    const formData = {
-      formId,
-      title: formTitle,
-      description: formDescription,
-      questions,
-    };
-    localStorage.setItem("savedSurveyFormData", JSON.stringify(formData));
-    alert("Form saved successfully!");
   };
 
   const handleSubmitForm = (e) => {
     e.preventDefault();
-    let errors = {};
-
-    if (formTitle.trim() === "") {
-      errors.title = "Form title is required.";
-    }
-
-    if (questions.length === 0) {
-      errors.questions = "Please add at least one question.";
-    }
-
-    let hasError = false;
-    questions.forEach((question, index) => {
-      if (!question.questionText || question.questionText.trim() === "") {
-        errors[`questionText_${index}`] = "All questions must have text.";
-        hasError = true;
-        return;
-      }
-
-      if (!question.questionType) {
-        errors[`questionType_${index}`] =
-          "Please select a question type for each question.";
-        hasError = true;
-        return;
-      }
-
-      if (["checkboxes"].includes(question.questionType)) {
-        question.checkboxOptions.forEach((option, optionIndex) => {
-          if (option.label.trim() === "") {
-            errors[`option_${index}_${optionIndex}`] =
-              "Options cannot be empty.";
-            hasError = true;
-            return;
-          }
-        });
-      }
-    });
-
-    if (Object.keys(errors).length > 0) {
-      setError(errors);
-      return;
-    }
-
-    setError({}); // Reset error if no issues
-    const formId = `form-${Date.now()}`;
 
     const formData = {
-      formId,
+      form_id: formId,
       title: formTitle,
       description: formDescription,
       questions,
     };
 
-    localStorage.setItem("surveyFormData", JSON.stringify(formData));
-    console.log("Survey Form Data:", formData);
+    // Save survey form to localStorage
+    const existingForms = JSON.parse(localStorage.getItem("surveyForms")) || [];
+    existingForms.push(formData);
+    localStorage.setItem("surveyForms", JSON.stringify(existingForms));
 
-    setSnackbarOpen(true);
     setSubmitted(true);
-
-    // Clear form data after submission
     setFormTitle("");
     setFormDescription("");
     setQuestions([]);
     onSubmit(formData);
   };
 
-  const handleClearFields = () => {
-    setFormTitle("");
-    setFormDescription("");
-    setQuestions((prevQuestions) =>
-      prevQuestions.map((question) => ({
-        ...question,
-        questionText: "",
-        questionType: "",
-        required: false,
-        checkboxOptions: question.checkboxOptions.map((option) => ({
-          ...option,
-          label: "",
-        })),
-      }))
-    );
-  };
-
   const renderCheckboxOptions = (question, questionIndex) => (
     <Form.Group grouped>
-      {question.checkboxOptions.map((option, optionIndex) => (
+      {question.options.map((option, optionIndex) => (
         <Form.Field
-          key={option.id}
+          key={optionIndex}
           style={{ display: "flex", alignItems: "center", marginBottom: "5px" }}
         >
           <Input
@@ -223,11 +153,6 @@ function SurveyForms({ onSubmit }) {
             }
             style={{ marginRight: "10px", width: "250px" }}
           />
-          {error[`option_${questionIndex}_${optionIndex}`] && (
-            <div style={{ color: "red" }}>
-              {error[`option_${questionIndex}_${optionIndex}`]}
-            </div>
-          )}
           <Button
             icon
             color="red"
@@ -239,6 +164,7 @@ function SurveyForms({ onSubmit }) {
         </Form.Field>
       ))}
       <Button
+        type="button"
         icon
         color="blue"
         onClick={() => handleAddOption(questionIndex)}
@@ -257,41 +183,36 @@ function SurveyForms({ onSubmit }) {
         ref={index === questions.length - 1 ? lastQuestionRef : null}
       >
         <Grid>
-          <Grid.Row columns={2}>
-            <Grid.Column width={12}>
-              {error[`questionText_${index}`] && (
-                <div style={{ color: "red" }}>
-                  {error[`questionText_${index}`]}
-                </div>
-              )}
+          <Grid.Row columns={2} verticalAlign="middle">
+            <Grid.Column width={10}>
+              <Header as="h4" style={{ marginBottom: "5px" }}>{`Question ${
+                index + 1
+              }`}</Header>
               <Form.Input
                 fluid
-                label="Question"
-                placeholder="Type your question here..."
-                value={question.questionText}
+                placeholder="Enter your question"
+                value={question.text}
                 onChange={(e) => handleQuestionChange(index, e.target.value)}
                 style={{ marginBottom: "20px" }}
               />
             </Grid.Column>
-            <Grid.Column width={4}>
-              {error[`questionType_${index}`] && (
-                <div style={{ color: "red" }}>
-                  {error[`questionType_${index}`]}
-                </div>
-              )}
+            <Grid.Column width={6}>
+              <Header as="h4" style={{ marginBottom: "5px" }}>
+                Question Type
+              </Header>
               <Form.Select
                 fluid
-                label="Question Type"
+                placeholder="Select Type"
                 options={[
                   {
                     key: "checkboxes",
                     text: "Checkboxes",
                     value: "checkboxes",
                   },
-                  { key: "ratings", text: "Ratings", value: "ratings" },
                   { key: "text", text: "Text", value: "text" },
+                  { key: "rating", text: "Rating", value: "rating" },
                 ]}
-                value={question.questionType}
+                value={question.type}
                 onChange={(e, { value }) =>
                   handleQuestionTypeChange(index, value)
                 }
@@ -299,22 +220,51 @@ function SurveyForms({ onSubmit }) {
               />
             </Grid.Column>
           </Grid.Row>
+          {question.type === "checkboxes" &&
+            renderCheckboxOptions(question, index)}
+          <Grid.Row columns={2} verticalAlign="middle">
+            <Grid.Column width={8}>
+              <Form.Checkbox
+                label="Required"
+                checked={question.required}
+                onChange={(e, { checked }) =>
+                  handleRequiredChange(index, checked)
+                }
+                style={{ marginRight: "10px" }}
+              />
+            </Grid.Column>
+            <Grid.Column width={8} textAlign="right">
+              <Button
+                icon
+                color="red"
+                onClick={() => handleDeleteQuestion(index)}
+                style={{ padding: "10px", marginTop: "5px" }}
+              >
+                <Icon name="trash" />
+              </Button>
+            </Grid.Column>
+          </Grid.Row>
         </Grid>
-
-        {question.questionType === "checkboxes" &&
-          renderCheckboxOptions(question, index)}
       </div>
     ));
 
   return (
-    <Container>
-      <Segment raised style={{ maxWidth: "800px", margin: "0 auto" }}>
+    <Container style={{ maxWidth: "600px", margin: "auto" }}>
+      <Segment
+        raised
+        style={{ padding: "20px", maxWidth: "800px", margin: "auto" }}
+      >
         <Form onSubmit={handleSubmitForm}>
-          {error.title && <div style={{ color: "red" }}>{error.title}</div>}
           <Form.Input
+            fluid
             placeholder="Form Title"
             value={formTitle}
             onChange={(e) => setFormTitle(e.target.value)}
+            style={{
+              fontSize: "1.5em",
+              fontWeight: formTitle ? "bold" : "normal",
+              marginBottom: "20px",
+            }}
           />
           <TextArea
             placeholder="Form Description"
@@ -323,63 +273,53 @@ function SurveyForms({ onSubmit }) {
             style={{ marginBottom: "20px" }}
           />
           {renderQuestions()}
-          <Grid>
-            <Grid.Row>
-              <Grid.Column width={16}>
-                <Button
-                  onClick={handleAddQuestion}
-                  style={{ marginTop: "20px" }}
-                >
-                  Add Question
-                </Button>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <Button
+              type="button"
+              onClick={handleAddQuestion}
+              icon
+              labelPosition="left"
+              style={{ marginBottom: "1em" }}
+            >
+              <Icon name="add" />
+              Add Question
+            </Button>
 
-                <Button
-                  icon
-                  labelPosition="left"
-                  onClick={handleSaveForm}
-                  color="olive"
-                  style={{ marginLeft: "10px", marginTop: "20px" }}
-                >
-                  <Icon name="save" />
-                  Save Form
-                </Button>
-
-                <Button
-                  color="orange"
-                  type="button"
-                  onClick={handleClearFields}
-                  style={{
-                    marginLeft: "10px",
-                    marginTop: "20px",
-                  }}
-                >
-                  Clear Text Fields
-                </Button>
-
-                <Button
-                  color="blue"
-                  type="submit"
-                  style={{ marginLeft: "210px", marginTop: "20px" }}
-                >
-                  <Icon name="paper plane" />
-                  Submit
-                </Button>
-              </Grid.Column>
-            </Grid.Row>
-          </Grid>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <Button
+                type="button"
+                onClick={handleClearFields}
+                color="orange"
+                style={{ marginBottom: "1em", marginRight: "10px" }}
+              >
+                Clear Text Fields
+              </Button>
+              <Button
+                color="blue"
+                type="submit"
+                style={{ marginBottom: "1em" }}
+              >
+                <Icon name="paper plane" />
+                Submit
+              </Button>
+            </div>
+          </div>
         </Form>
       </Segment>
 
-      {snackbarOpen && (
-        <Message
-          positive
-          onDismiss={() => setSnackbarOpen(false)}
-          header="Form submitted successfully!"
-        />
-      )}
-
       {submitted && (
-        <Message success header="Survey form submitted successfully!" />
+        <Message positive style={{ maxWidth: "800px", margin: "20px auto" }}>
+          <Message.Header>
+            Your response has been successfully submitted!
+          </Message.Header>
+        </Message>
       )}
     </Container>
   );

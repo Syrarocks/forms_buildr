@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Container,
-  Button,
-  Form,
-  Message,
   Segment,
   Header,
+  Form,
+  Checkbox,
+  Rating,
+  Input,
+  Button,
+  Message,
 } from "semantic-ui-react";
 import { useLocation } from "react-router-dom";
 
-function FormDisplay() {
+function SurveyFormDisplay() {
   const location = useLocation();
-  const formData = location.state?.form || {}; // Access the form data
+  const formData = location.state?.form || {}; // Access the survey form data
   const [responses, setResponses] = useState({});
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -26,6 +29,17 @@ function FormDisplay() {
       setResponses(initialResponses);
     }
   }, [formData]);
+
+  useEffect(() => {
+    if (submitted) {
+      const timer = setTimeout(() => {
+        setSubmitted(false);
+      }, 5000); // 6000 milliseconds = 6 seconds
+
+      // Cleanup timer if the component is unmounted or if submitted changes
+      return () => clearTimeout(timer);
+    }
+  }, [submitted]);
 
   const handleResponseChange = (questionId, value) => {
     setResponses((prevResponses) => ({
@@ -54,7 +68,7 @@ function FormDisplay() {
     if (!hasBlankOption) {
       // Create the response object in the desired format
       const submissionData = {
-        formTitle: formData.title || "Untitled Form", // Add form title
+        formTitle: formData.title || "Untitled Survey Form",
         responses: formData.questions.map((question) => ({
           question_id: question.id,
           answer: responses[question.id],
@@ -63,16 +77,16 @@ function FormDisplay() {
 
       // Retrieve existing responses from local storage or initialize an empty array
       const savedResponses =
-        JSON.parse(localStorage.getItem("formResponses")) || [];
+        JSON.parse(localStorage.getItem("surveyResponses")) || [];
 
       // Add the new submission data
       savedResponses.push(submissionData);
 
       // Save the updated responses array back to local storage
-      localStorage.setItem("formResponses", JSON.stringify(savedResponses));
+      localStorage.setItem("surveyResponses", JSON.stringify(savedResponses));
 
       // Display the stored responses in the console
-      console.log("Submitted Form Data:", submissionData);
+      console.log("Submitted Survey Form Data:", submissionData);
 
       setSubmitted(true);
       setError("");
@@ -85,7 +99,7 @@ function FormDisplay() {
         return (
           <Form.Field key={question.id} required={question.required}>
             <label>{question.text}</label>
-            <input
+            <Input
               value={responses[question.id] || ""}
               onChange={(e) =>
                 handleResponseChange(question.id, e.target.value)
@@ -93,29 +107,12 @@ function FormDisplay() {
             />
           </Form.Field>
         );
-      case "multipleChoice":
-        return (
-          <Form.Field key={question.id} required={question.required}>
-            <label>{question.text}</label>
-            {question.options.map((option) => (
-              <Form.Radio
-                key={option.label}
-                label={option.label}
-                value={option.label}
-                checked={responses[question.id] === option.label}
-                onChange={(e, { value }) =>
-                  handleResponseChange(question.id, value)
-                }
-              />
-            ))}
-          </Form.Field>
-        );
       case "checkboxes":
         return (
           <Form.Field key={question.id} required={question.required}>
             <label>{question.text}</label>
             {question.options.map((option) => (
-              <Form.Checkbox
+              <Checkbox
                 key={option.label}
                 label={option.label}
                 checked={(responses[question.id] || []).includes(option.label)}
@@ -131,33 +128,15 @@ function FormDisplay() {
             ))}
           </Form.Field>
         );
-      case "dropdown":
+      case "rating":
         return (
           <Form.Field key={question.id} required={question.required}>
             <label>{question.text}</label>
-            <Form.Select
-              options={question.options.map((option) => ({
-                key: option.label,
-                value: option.label,
-                text: option.label,
-              }))}
-              value={responses[question.id] || ""}
-              onChange={(e, { value }) =>
-                handleResponseChange(question.id, value)
-              }
-              placeholder="Select an option"
-            />
-          </Form.Field>
-        );
-      case "date":
-        return (
-          <Form.Field key={question.id} required={question.required}>
-            <label>{question.text}</label>
-            <input
-              type="date"
-              value={responses[question.id] || ""}
-              onChange={(e) =>
-                handleResponseChange(question.id, e.target.value)
+            <Rating
+              maxRating={5}
+              rating={responses[question.id] || 0}
+              onRate={(e, { rating }) =>
+                handleResponseChange(question.id, rating)
               }
             />
           </Form.Field>
@@ -181,12 +160,12 @@ function FormDisplay() {
             ))}
           {error && <Message error content={error} />}
           <Button type="submit" primary>
-            Submit Responses
+            Submit Survey Responses
           </Button>
         </Form>
       </Segment>
       {submitted && (
-        <Message positive>
+        <Message positive style={{ maxWidth: "650px", margin: "20px auto" }}>
           <Message.Header>
             Your response has been successfully submitted!
           </Message.Header>
@@ -196,4 +175,4 @@ function FormDisplay() {
   );
 }
 
-export default FormDisplay;
+export default SurveyFormDisplay;

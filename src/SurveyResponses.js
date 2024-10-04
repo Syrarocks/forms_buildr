@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { Container, Segment, Header, Button } from "semantic-ui-react";
 
-function FormResponses() {
+function SurveyResponses() {
   const [groupedResponses, setGroupedResponses] = useState({});
 
   useEffect(() => {
-    // Retrieve form responses from localStorage
+    // Retrieve survey responses from localStorage
     const savedResponses =
-      JSON.parse(localStorage.getItem("formResponses")) || [];
+      JSON.parse(localStorage.getItem("surveyResponses")) || [];
 
     // Group responses by form title
     const grouped = savedResponses.reduce((acc, response) => {
       const formTitle =
         response.formTitle && response.formTitle.trim() !== ""
           ? response.formTitle
-          : "Untitled Form"; // Use 'formTitle' to group responses
+          : "Untitled Survey Form";
       if (!acc[formTitle]) {
         acc[formTitle] = [];
       }
@@ -26,8 +26,8 @@ function FormResponses() {
   }, []);
 
   const handleClearResponses = () => {
-    // Clear the form responses from localStorage
-    localStorage.removeItem("formResponses");
+    // Clear the survey responses from localStorage
+    localStorage.removeItem("surveyResponses");
 
     // Clear the local state
     setGroupedResponses({});
@@ -41,7 +41,7 @@ function FormResponses() {
         onClick={handleClearResponses}
         style={{ marginLeft: "750px" }}
       >
-        Clear Responses
+        Clear Survey Responses
       </Button>
 
       {Object.keys(groupedResponses).length > 0 ? (
@@ -50,7 +50,6 @@ function FormResponses() {
             key={index}
             style={{ maxWidth: "650px", margin: "20px auto" }}
           >
-            {/* Display form title with red color and response count */}
             <div
               style={{
                 display: "flex",
@@ -70,10 +69,7 @@ function FormResponses() {
                 key={responseIndex}
                 style={{ maxWidth: "650px", margin: "10px auto" }}
               >
-                {/* Reduce the width of the inner segments */}
                 <Header as="h4">Response {responseIndex + 1}</Header>
-
-                {/* Display each question and its answer */}
                 {Array.isArray(response.responses) ? (
                   response.responses.map((answerObj, idx) => (
                     <div key={idx}>
@@ -93,10 +89,10 @@ function FormResponses() {
           </Segment>
         ))
       ) : (
-        <p>No responses available</p>
+        <p>No survey responses available</p>
       )}
     </Container>
   );
 }
 
-export default FormResponses;
+export default SurveyResponses;
