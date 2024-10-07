@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { List, Segment, Button } from "semantic-ui-react";
 import { useNavigate } from "react-router-dom";
 
-const SurveyForms11 = () => {
+const SurveyFormsList = () => {
   const [surveyForms, setSurveyForms] = useState([]);
   const navigate = useNavigate();
 
@@ -41,7 +41,7 @@ const SurveyForms11 = () => {
       </Button>
 
       <h2 style={{ marginLeft: "240px" }}>All Created Survey Forms</h2>
-      <List divided>
+      <List>
         {surveyForms.length > 0 ? (
           surveyForms.map((form) => (
             <List.Item key={form.form_id}>
@@ -77,4 +77,4 @@ const SurveyForms11 = () => {
   );
 };
 
-export default SurveyForms11;
+export default SurveyFormsList;

@@ -13,11 +13,12 @@ import {
 } from "semantic-ui-react";
 
 function SurveyForms({ onSubmit }) {
-  const formId = `form-${Date.now()}`;
+  const formId = `${Date.now()}`;
   const [questions, setQuestions] = useState([]);
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
   const lastQuestionRef = useRef(null);
 
   useEffect(() => {
@@ -35,6 +36,7 @@ function SurveyForms({ onSubmit }) {
     if (submitted) {
       const timer = setTimeout(() => {
         setSubmitted(false);
+        setError(""); // Clear error after successful submission
       }, 5000); // 6000 milliseconds = 6 seconds
 
       // Cleanup timer if the component is unmounted or if submitted changes
@@ -47,6 +49,7 @@ function SurveyForms({ onSubmit }) {
     setFormDescription("");
     setQuestions([]);
     setSubmitted(false);
+    setError(""); // Clear error on fields clear
     localStorage.removeItem("savedSurveyFormData");
   };
 
@@ -113,11 +116,47 @@ function SurveyForms({ onSubmit }) {
   const handleLabelChange = (questionIndex, optionIndex, label) => {
     const newQuestions = [...questions];
     newQuestions[questionIndex].options[optionIndex].label = label;
+
+    // Clear the error if all options are filled after input
+    const hasEmptyOption = newQuestions[questionIndex].options.some(
+      (option) => !option.label.trim()
+    );
+    if (!hasEmptyOption && error === "All options must be filled out.") {
+      setError(""); // Clear the error once all options are filled
+    }
+
     setQuestions(newQuestions);
+  };
+
+  const validateForm = () => {
+    if (!formTitle) {
+      setError("Form title is required.");
+      return false;
+    }
+    for (const question of questions) {
+      if (question.type === "checkboxes") {
+        const hasEmptyOption = question.options.some(
+          (option) => !option.label.trim()
+        );
+        if (hasEmptyOption) {
+          setError("All options must be filled out.");
+          return false;
+        }
+        if (question.options.length < 2) {
+          setError("At least two options are required for checkboxes.");
+          return false;
+        }
+      }
+    }
+    return true;
   };
 
   const handleSubmitForm = (e) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return; // Stop form submission if validation fails
+    }
 
     const formData = {
       form_id: formId,
@@ -135,6 +174,7 @@ function SurveyForms({ onSubmit }) {
     setFormTitle("");
     setFormDescription("");
     setQuestions([]);
+    setError(""); // Clear error on successful submission
     onSubmit(formData);
   };
 
@@ -248,6 +288,10 @@ function SurveyForms({ onSubmit }) {
       </div>
     ));
 
+  // Check if form title is entered and there is at least one question with a type selected
+  const isSubmitEnabled =
+    formTitle && questions.length > 0 && questions.every((q) => q.type);
+
   return (
     <Container style={{ maxWidth: "600px", margin: "auto" }}>
       <Segment
@@ -273,6 +317,12 @@ function SurveyForms({ onSubmit }) {
             style={{ marginBottom: "20px" }}
           />
           {renderQuestions()}
+          {error && (
+            <Message negative>
+              <Message.Header>Error</Message.Header>
+              <p>{error}</p>
+            </Message>
+          )}
           <div
             style={{
               display: "flex",
@@ -301,14 +351,16 @@ function SurveyForms({ onSubmit }) {
               >
                 Clear Text Fields
               </Button>
-              <Button
-                color="blue"
-                type="submit"
-                style={{ marginBottom: "1em" }}
-              >
-                <Icon name="paper plane" />
-                Submit
-              </Button>
+              {isSubmitEnabled && (
+                <Button
+                  color="blue"
+                  type="submit"
+                  style={{ marginBottom: "1em" }}
+                >
+                  <Icon name="paper plane" />
+                  Submit
+                </Button>
+              )}
             </div>
           </div>
         </Form>

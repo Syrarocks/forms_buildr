@@ -61,7 +61,8 @@ function FormDisplay() {
     if (!hasBlankOption) {
       // Create the response object in the desired format
       const submissionData = {
-        form_id: formData.form_id || "form-" + Date.now(), // Use form_id or generate one
+        form_id: formData.form_id || "form-" + Date.now(),
+        submittedAt: new Date().toLocaleString(), // Use form_id or generate one
         name, // Include Name
         rollNo, // Include Roll No
         responses: formData.questions.map((question) => ({
@@ -90,6 +91,14 @@ function FormDisplay() {
       setError("");
       setName(""); // Clear the Name field
       setRollNo(""); // Clear the Roll No field
+
+      // Reset responses to initial state
+      const initialResponses = {};
+      formData.questions.forEach((question) => {
+        initialResponses[question.id] =
+          question.type === "checkboxes" ? [] : "";
+      });
+      setResponses(initialResponses); // Clear all question responses
     }
   };
 

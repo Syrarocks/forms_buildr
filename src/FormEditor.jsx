@@ -183,7 +183,7 @@ function FormEditor({ onSubmit }) {
     }
 
     if (Object.keys(newErrors).length === 0) {
-      const formId = `form-${Date.now()}`;
+      const formId = `${Date.now()}`;
 
       const formData = {
         form_id: formId,

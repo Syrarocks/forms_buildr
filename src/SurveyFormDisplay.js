@@ -49,24 +49,29 @@ function SurveyFormDisplay() {
   };
 
   const handleSubmitResponses = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent the default form submission behavior
     let hasBlankOption = false;
+    let errorMessage = "Please fill out all fields before submitting."; // General error message
 
-    // Check for any required fields that are not answered
+    // Check if any field is empty or unselected
     formData.questions.forEach((question) => {
-      if (
-        question.required &&
-        (responses[question.id] === "" ||
-          (Array.isArray(responses[question.id]) &&
-            responses[question.id].length === 0))
-      ) {
-        setError("Please answer all required questions.");
+      const answer = responses[question.id];
+
+      // Handle check for empty fields across different question types
+      if (question.type === "checkboxes" && Array.isArray(answer)) {
+        if (answer.length === 0) {
+          hasBlankOption = true;
+        }
+      } else if (!answer || answer.trim() === "") {
         hasBlankOption = true;
       }
     });
 
-    if (!hasBlankOption) {
-      // Create the response object in the desired format
+    if (hasBlankOption) {
+      // Set the error message to inform the user that all fields must be filled
+      setError(errorMessage);
+    } else {
+      // If all fields are filled, proceed with form submission
       const submissionData = {
         formTitle: formData.title || "Untitled Survey Form",
         responses: formData.questions.map((question) => ({
@@ -89,7 +94,7 @@ function SurveyFormDisplay() {
       console.log("Submitted Survey Form Data:", submissionData);
 
       setSubmitted(true);
-      setError("");
+      setError(""); // Clear any existing error
     }
   };
 

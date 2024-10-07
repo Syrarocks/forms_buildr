@@ -40,7 +40,7 @@ const Forms = () => {
       </Button>
 
       <h2 style={{ marginLeft: "240px" }}>All Created Forms</h2>
-      <List divided>
+      <List>
         {forms.length > 0 ? (
           forms.map((form) => (
             <List.Item key={form.form_id}>

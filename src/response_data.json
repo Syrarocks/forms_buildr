@@ -1,25 +1,81 @@
 {
-  "formTitle": "hey!",
+  "form_id": "1728111176280",
+  "name": "Meena",
+  "rollNo": "32534",
   "responses": [
     {
       "question_id": 1,
-      "answer": "fdgf"
+      "question_text": "dfsdf",
+      "question_type": "text",
+      "options": [],
+      "answer": "ghfhfh"
     },
     {
       "question_id": 2,
-      "answer": "ghgj"
+      "question_text": "dsfsd",
+      "question_type": "multipleChoice",
+      "options": [
+        {
+          "label": "sdfds"
+        },
+        {
+          "label": "dff"
+        },
+        {
+          "label": "vcb"
+        },
+        {
+          "label": "jhg"
+        }
+      ],
+      "answer": "sdfds"
     },
     {
       "question_id": 3,
-      "answer": ["hgdfh"]
+      "question_text": "tryy",
+      "question_type": "checkboxes",
+      "options": [
+        {
+          "label": "hjghj"
+        },
+        {
+          "label": "bnmb"
+        },
+        {
+          "label": "jkjhk"
+        },
+        {
+          "label": "iyui"
+        }
+      ],
+      "answer": ["jkjhk"]
     },
     {
       "question_id": 4,
-      "answer": "xvc"
+      "question_text": "sdasd",
+      "question_type": "dropdown",
+      "options": [
+        {
+          "label": "gfhfh"
+        },
+        {
+          "label": "ewrw"
+        },
+        {
+          "label": "fdsf"
+        },
+        {
+          "label": "hjhg"
+        }
+      ],
+      "answer": "hjhg"
     },
     {
       "question_id": 5,
-      "answer": "2024-10-02"
+      "question_text": "rtety",
+      "question_type": "date",
+      "options": [],
+      "answer": "2024-10-03"
     }
   ]
 }

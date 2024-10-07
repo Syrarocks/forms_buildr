@@ -9,6 +9,21 @@ import {
   Radio,
 } from "semantic-ui-react";
 
+// Function to format date and time in the "Sep 19 2:21 PM" format
+const formatDateTime = (dateTimeString) => {
+  const date = new Date(dateTimeString);
+  const formattedDate = date.toLocaleDateString("en-US", {
+    month: "short", // e.g., "Sep"
+    day: "numeric", // e.g., "19"
+  });
+  const formattedTime = date.toLocaleTimeString("en-US", {
+    hour: "numeric", // e.g., "2"
+    minute: "2-digit", // e.g., "21"
+    hour12: true, // for AM/PM format
+  });
+  return `${formattedDate} ${formattedTime}`;
+};
+
 function FormResponses() {
   const [groupedResponses, setGroupedResponses] = useState({});
   const [selectedResponse, setSelectedResponse] = useState(null);
@@ -55,11 +70,11 @@ function FormResponses() {
                   marginBottom: "0.5em",
                   backgroundColor:
                     question.answer === option.label
-                      ? "lightblue"
+                      ? "#d9efc8"
                       : "transparent",
                   padding: "5px",
                   borderRadius: "5px",
-                  color: question.answer === option.label ? "#000" : "#000", // Highlight text color
+                  color: question.answer === option.label ? "#000" : "#000",
                   fontWeight:
                     question.answer === option.label ? "bold" : "normal",
                 }}
@@ -83,13 +98,13 @@ function FormResponses() {
                 style={{
                   marginBottom: "0.5em",
                   backgroundColor: question.answer.includes(option.label)
-                    ? "lightblue"
+                    ? "#d9efc8"
                     : "transparent",
                   padding: "5px",
                   borderRadius: "5px",
                   color: question.answer.includes(option.label)
                     ? "#000"
-                    : "#000", // Highlight text color
+                    : "#000",
                   fontWeight: question.answer.includes(option.label)
                     ? "bold"
                     : "normal",
@@ -121,8 +136,8 @@ function FormResponses() {
             value={question.answer}
             disabled
             style={{
-              backgroundColor: "lightblue",
-              color: "#000", // Highlight text color
+              backgroundColor: "#d9efc8",
+              color: "#000",
               fontWeight: "bold",
             }}
           />
@@ -134,10 +149,10 @@ function FormResponses() {
             readOnly
             disabled
             style={{
-              backgroundColor: "lightblue",
+              backgroundColor: "#d9efc8",
               color: "#000",
               fontWeight: "bold",
-            }} // Highlight text color
+            }}
           />
         );
       case "date":
@@ -148,10 +163,10 @@ function FormResponses() {
             readOnly
             disabled
             style={{
-              backgroundColor: "lightblue",
+              backgroundColor: "#d9efc8",
               color: "#000",
               fontWeight: "bold",
-            }} // Highlight text color
+            }}
           />
         );
       default:
@@ -176,12 +191,23 @@ function FormResponses() {
           <Header as="h3" color="red">
             Form ID: {selectedResponse.form_id}
           </Header>
-          <p>
-            <strong>Name:</strong> {selectedResponse.name}
-          </p>
-          <p>
-            <strong>Roll No:</strong> {selectedResponse.rollNo}
-          </p>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <p>
+              <strong>Name:</strong> {selectedResponse.name}
+            </p>
+            <p>
+              <strong>Submitted At:</strong>{" "}
+              {formatDateTime(selectedResponse.submittedAt)}
+            </p>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <p>
+              <strong>Roll No:</strong> {selectedResponse.rollNo}
+            </p>
+          </div>
+
+          {/* Add a margin to create space between Roll No and the questions */}
+          <div style={{ marginBottom: "20px" }}></div>
 
           <Form>
             {Array.isArray(selectedResponse.responses) &&
@@ -229,12 +255,26 @@ function FormResponses() {
                     key={responseIndex}
                     style={{ maxWidth: "650px", margin: "10px auto" }}
                   >
-                    <p>
-                      <strong>Name:</strong> {response.name}
-                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <p>
+                        <strong>Name:</strong> {response.name}
+                      </p>
+
+                      <p style={{ color: "gray", fontSize: "1.1em" }}>
+                        <strong>Submitted At:</strong>{" "}
+                        {formatDateTime(response.submittedAt)}
+                      </p>
+                    </div>
+
                     <p>
                       <strong>Roll No:</strong> {response.rollNo}
                     </p>
+
                     <Button
                       onClick={() => handleViewResponse(response)}
                       style={{ marginTop: "1em" }}
