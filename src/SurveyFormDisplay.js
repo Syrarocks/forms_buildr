@@ -62,7 +62,10 @@ function SurveyFormDisplay() {
         if (answer.length === 0) {
           hasBlankOption = true;
         }
-      } else if (!answer || answer.trim() === "") {
+      } else if (typeof answer === "string" && answer.trim() === "") {
+        hasBlankOption = true;
+      } else if (typeof answer !== "string" && !answer) {
+        // Handle cases where answer is not a string (e.g., for ratings)
         hasBlankOption = true;
       }
     });
@@ -115,22 +118,27 @@ function SurveyFormDisplay() {
       case "checkboxes":
         return (
           <Form.Field key={question.id} required={question.required}>
-            <label>{question.text}</label>
-            {question.options.map((option) => (
-              <Checkbox
-                key={option.label}
-                label={option.label}
-                checked={(responses[question.id] || []).includes(option.label)}
-                onChange={(e, { checked }) => {
-                  const newResponses = checked
-                    ? [...(responses[question.id] || []), option.label]
-                    : (responses[question.id] || []).filter(
-                        (item) => item !== option.label
-                      );
-                  handleResponseChange(question.id, newResponses);
-                }}
-              />
-            ))}
+            <label style={{ marginBottom: "10px" }}>{question.text}</label>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {question.options.map((option) => (
+                <div key={option.label} style={{ marginBottom: "8px" }}>
+                  <Checkbox
+                    label={option.label}
+                    checked={(responses[question.id] || []).includes(
+                      option.label
+                    )}
+                    onChange={(e, { checked }) => {
+                      const newResponses = checked
+                        ? [...(responses[question.id] || []), option.label]
+                        : (responses[question.id] || []).filter(
+                            (item) => item !== option.label
+                          );
+                      handleResponseChange(question.id, newResponses);
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
           </Form.Field>
         );
       case "rating":
@@ -143,9 +151,13 @@ function SurveyFormDisplay() {
               onRate={(e, { rating }) =>
                 handleResponseChange(question.id, rating)
               }
+              icon="star" // Change icon to star
+              size="huge" // Increase the size of the stars
+              style={{ color: "gold" }} // Change star color to golden yellow
             />
           </Form.Field>
         );
+
       default:
         return null;
     }
@@ -165,7 +177,7 @@ function SurveyFormDisplay() {
             ))}
           {error && <Message error content={error} />}
           <Button type="submit" primary>
-            Submit Survey Responses
+            Submit Responses
           </Button>
         </Form>
       </Segment>
