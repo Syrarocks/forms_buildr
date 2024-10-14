@@ -16,6 +16,7 @@ function SurveyFormDisplay() {
   const location = useLocation();
   const formData = location.state?.form || {}; // Access the survey form data
   const [responses, setResponses] = useState({});
+  const [name, setName] = useState(""); // State to track the user's name
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
@@ -34,7 +35,7 @@ function SurveyFormDisplay() {
     if (submitted) {
       const timer = setTimeout(() => {
         setSubmitted(false);
-      }, 5000); // 6000 milliseconds = 6 seconds
+      }, 5000); // 5000 milliseconds = 5 seconds
 
       // Cleanup timer if the component is unmounted or if submitted changes
       return () => clearTimeout(timer);
@@ -70,18 +71,32 @@ function SurveyFormDisplay() {
       }
     });
 
+    if (!name.trim()) {
+      // Check if the name is empty
+      hasBlankOption = true;
+      errorMessage = "Please enter your name.";
+    }
+
     if (hasBlankOption) {
       // Set the error message to inform the user that all fields must be filled
       setError(errorMessage);
     } else {
       // If all fields are filled, proceed with form submission
       const submissionData = {
-        formTitle: formData.title || "Untitled Survey Form",
+        form_id: formData.id || formData.form_id || "form-" + Date.now(),
+        name, // Include the name in the submission data
+        submittedAt: new Date().toISOString(), // Store the submission timestamp
         responses: formData.questions.map((question) => ({
           question_id: question.id,
-          answer: responses[question.id],
+          question_text: question.text, // Add question text
+          question_type: question.type, // Add question type
+          options: question.options || [], // Include options if available
+          answer: responses[question.id], // Store the answer
         })),
       };
+
+      // Log the form ID and the submission data
+      console.log("Submitted Survey Form Data:", submissionData);
 
       // Retrieve existing responses from local storage or initialize an empty array
       const savedResponses =
@@ -92,9 +107,6 @@ function SurveyFormDisplay() {
 
       // Save the updated responses array back to local storage
       localStorage.setItem("surveyResponses", JSON.stringify(savedResponses));
-
-      // Display the stored responses in the console
-      console.log("Submitted Survey Form Data:", submissionData);
 
       setSubmitted(true);
       setError(""); // Clear any existing error
@@ -169,6 +181,17 @@ function SurveyFormDisplay() {
         <Header as="h2">{formData.title}</Header>
         {formData.description && <p>{formData.description}</p>}
         <Form onSubmit={handleSubmitResponses}>
+          {/* Name Input Field */}
+          <Form.Field required>
+            <label>Name</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your name"
+            />
+          </Form.Field>
+
+          {/* Render Survey Questions */}
           {formData.questions &&
             formData.questions.map((question) => (
               <div key={question.id} style={{ marginBottom: "1.5em" }}>

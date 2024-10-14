@@ -36,10 +36,9 @@ function SurveyForms({ onSubmit }) {
     if (submitted) {
       const timer = setTimeout(() => {
         setSubmitted(false);
-        setError(""); // Clear error after successful submission
-      }, 5000); // 6000 milliseconds = 6 seconds
+        setError("");
+      }, 5000);
 
-      // Cleanup timer if the component is unmounted or if submitted changes
       return () => clearTimeout(timer);
     }
   }, [submitted]);
@@ -49,7 +48,7 @@ function SurveyForms({ onSubmit }) {
     setFormDescription("");
     setQuestions([]);
     setSubmitted(false);
-    setError(""); // Clear error on fields clear
+    setError("");
     localStorage.removeItem("savedSurveyFormData");
   };
 
@@ -117,12 +116,11 @@ function SurveyForms({ onSubmit }) {
     const newQuestions = [...questions];
     newQuestions[questionIndex].options[optionIndex].label = label;
 
-    // Clear the error if all options are filled after input
     const hasEmptyOption = newQuestions[questionIndex].options.some(
       (option) => !option.label.trim()
     );
     if (!hasEmptyOption && error === "All options must be filled out.") {
-      setError(""); // Clear the error once all options are filled
+      setError("");
     }
 
     setQuestions(newQuestions);
@@ -155,7 +153,7 @@ function SurveyForms({ onSubmit }) {
     e.preventDefault();
 
     if (!validateForm()) {
-      return; // Stop form submission if validation fails
+      return;
     }
 
     const formData = {
@@ -165,7 +163,6 @@ function SurveyForms({ onSubmit }) {
       questions,
     };
 
-    // Save survey form to localStorage
     const existingForms = JSON.parse(localStorage.getItem("surveyForms")) || [];
     existingForms.push(formData);
     localStorage.setItem("surveyForms", JSON.stringify(existingForms));
@@ -174,8 +171,9 @@ function SurveyForms({ onSubmit }) {
     setFormTitle("");
     setFormDescription("");
     setQuestions([]);
-    setError(""); // Clear error on successful submission
-    onSubmit(formData);
+    setError("");
+    console.log("Form Submitted:", formData);
+    if (onSubmit) onSubmit(formData);
   };
 
   const renderCheckboxOptions = (question, questionIndex) => (
@@ -288,7 +286,6 @@ function SurveyForms({ onSubmit }) {
       </div>
     ));
 
-  // Check if form title is entered and there is at least one question with a type selected
   const isSubmitEnabled =
     formTitle && questions.length > 0 && questions.every((q) => q.type);
 
