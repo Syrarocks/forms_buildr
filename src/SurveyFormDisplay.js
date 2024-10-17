@@ -52,22 +52,24 @@ function SurveyFormDisplay() {
   const handleSubmitResponses = (e) => {
     e.preventDefault(); // Prevent the default form submission behavior
     let hasBlankOption = false;
-    let errorMessage = "Please fill out all fields before submitting."; // General error message
+    let errorMessage = "Please fill out all required fields before submitting."; // General error message
 
-    // Check if any field is empty or unselected
+    // Check if any required question is empty or unselected
     formData.questions.forEach((question) => {
       const answer = responses[question.id];
 
-      // Handle check for empty fields across different question types
-      if (question.type === "checkboxes" && Array.isArray(answer)) {
-        if (answer.length === 0) {
+      if (question.required) {
+        // Handle check for required fields across different question types
+        if (question.type === "checkboxes" && Array.isArray(answer)) {
+          if (answer.length === 0) {
+            hasBlankOption = true;
+          }
+        } else if (typeof answer === "string" && answer.trim() === "") {
+          hasBlankOption = true;
+        } else if (typeof answer !== "string" && !answer) {
+          // Handle cases where answer is not a string (e.g., for ratings)
           hasBlankOption = true;
         }
-      } else if (typeof answer === "string" && answer.trim() === "") {
-        hasBlankOption = true;
-      } else if (typeof answer !== "string" && !answer) {
-        // Handle cases where answer is not a string (e.g., for ratings)
-        hasBlankOption = true;
       }
     });
 
@@ -84,6 +86,7 @@ function SurveyFormDisplay() {
       // If all fields are filled, proceed with form submission
       const submissionData = {
         form_id: formData.id || formData.form_id || "form-" + Date.now(),
+        title: formData.title, // Include the title in the submission data
         name, // Include the name in the submission data
         submittedAt: new Date().toISOString(), // Store the submission timestamp
         responses: formData.questions.map((question) => ({
@@ -108,8 +111,17 @@ function SurveyFormDisplay() {
       // Save the updated responses array back to local storage
       localStorage.setItem("surveyResponses", JSON.stringify(savedResponses));
 
+      // Reset the form state after submission
       setSubmitted(true);
       setError(""); // Clear any existing error
+      setName(""); // Reset the name field
+      // Reset responses to initial state
+      const initialResponses = {};
+      formData.questions.forEach((question) => {
+        initialResponses[question.id] =
+          question.type === "checkboxes" ? [] : "";
+      });
+      setResponses(initialResponses); // Reset the responses
     }
   };
 

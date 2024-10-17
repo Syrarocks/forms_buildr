@@ -27,7 +27,9 @@ const SurveyFormsList = () => {
   return (
     <div style={{ position: "relative" }}>
       {/* Clear Forms button at the top right */}
-      <Button
+
+      <button
+        class="ui inverted red button"
         color="red"
         onClick={handleClearForms}
         style={{
@@ -37,8 +39,8 @@ const SurveyFormsList = () => {
           marginRight: "240px",
         }}
       >
-        Clear Survey Forms
-      </Button>
+        Clear Forms
+      </button>
 
       <h2 style={{ marginLeft: "240px" }}>All Created Survey Forms</h2>
       <List>

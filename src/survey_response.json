@@ -1,0 +1,42 @@
+{
+  "form_id": "1729070077851",
+  "title": "survey form",
+  "name": "Rita",
+  "submittedAt": "2024-10-16T09:15:15.331Z",
+  "responses": [
+    {
+      "question_id": 1,
+      "question_text": "rtret",
+      "question_type": "checkboxes",
+      "options": [
+        {
+          "label": "retet"
+        },
+        {
+          "label": "ertert"
+        },
+        {
+          "label": "trt"
+        },
+        {
+          "label": "ret"
+        }
+      ],
+      "answer": ["ertert"]
+    },
+    {
+      "question_id": 2,
+      "question_text": "uyiuyo",
+      "question_type": "text",
+      "options": [],
+      "answer": "nmnmnm"
+    },
+    {
+      "question_id": 3,
+      "question_text": "xcvcxbcvb",
+      "question_type": "rating",
+      "options": [],
+      "answer": 4
+    }
+  ]
+}

@@ -473,7 +473,6 @@ function FormEditor({ onSubmit }) {
               type="button"
               onClick={handleAddQuestion}
               icon
-              labelPosition="left"
               style={{ marginBottom: "1em" }}
             >
               <Icon name="add" />
@@ -481,14 +480,14 @@ function FormEditor({ onSubmit }) {
             </Button>
 
             <div style={{ display: "flex", alignItems: "center" }}>
-              <Button
+              <button
+                class="ui inverted red button"
                 type="button"
                 onClick={handleClearTextFields}
-                color="orange"
                 style={{ marginBottom: "1em", marginRight: "10px" }}
               >
                 Clear
-              </Button>
+              </button>
 
               {isFormValid() && (
                 <>
@@ -496,7 +495,7 @@ function FormEditor({ onSubmit }) {
                     type="button"
                     onClick={handleAnswerKey}
                     color="green"
-                    style={{ marginBottom: "1em", marginRight: "180px" }}
+                    style={{ marginBottom: "1em", marginRight: "12px" }}
                   >
                     Answer Key
                   </Button>

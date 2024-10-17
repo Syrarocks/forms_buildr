@@ -26,7 +26,8 @@ const Forms = () => {
   return (
     <div style={{ position: "relative" }}>
       {/* Clear Forms button at the top right */}
-      <Button
+      <button
+        class="ui inverted red button"
         color="red"
         onClick={handleClearForms}
         style={{
@@ -37,7 +38,7 @@ const Forms = () => {
         }}
       >
         Clear Forms
-      </Button>
+      </button>
 
       <h2 style={{ marginLeft: "240px" }}>All Created Forms</h2>
       <List>

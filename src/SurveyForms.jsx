@@ -202,7 +202,7 @@ function SurveyForms({ onSubmit }) {
         </Form.Field>
       ))}
       <Button
-        type="button"
+        type="button" // Change type to button to avoid form submission
         icon
         color="blue"
         onClick={() => handleAddOption(questionIndex)}
@@ -275,6 +275,7 @@ function SurveyForms({ onSubmit }) {
               <Button
                 icon
                 color="red"
+                type="button" // Change type to button to avoid form submission
                 onClick={() => handleDeleteQuestion(index)}
                 style={{ padding: "10px", marginTop: "5px" }}
               >
@@ -314,12 +315,7 @@ function SurveyForms({ onSubmit }) {
             style={{ marginBottom: "20px" }}
           />
           {renderQuestions()}
-          {error && (
-            <Message negative>
-              <Message.Header>Error</Message.Header>
-              <p>{error}</p>
-            </Message>
-          )}
+
           <div
             style={{
               display: "flex",
@@ -329,7 +325,8 @@ function SurveyForms({ onSubmit }) {
             }}
           >
             <Button
-              type="button"
+              color="blue"
+              type="button" // Change type to button to avoid form submission
               onClick={handleAddQuestion}
               icon
               labelPosition="left"
@@ -340,14 +337,16 @@ function SurveyForms({ onSubmit }) {
             </Button>
 
             <div style={{ display: "flex", alignItems: "center" }}>
-              <Button
+              <button
+                class="ui inverted red button"
                 type="button"
                 onClick={handleClearFields}
-                color="orange"
+                color="red"
                 style={{ marginBottom: "1em", marginRight: "10px" }}
               >
-                Clear Text Fields
-              </Button>
+                Clear
+              </button>
+
               {isSubmitEnabled && (
                 <Button
                   color="blue"

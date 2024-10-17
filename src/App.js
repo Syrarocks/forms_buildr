@@ -12,9 +12,11 @@ import SurveyDisplay from "./SurveyFormDisplay"; // Import SurveyDisplay compone
 import FormResponses from "./FormResponses";
 import AnswerKey from "./AnswerKey";
 import SurveyFormsList from "./SurveyFormsList"; // Import the new component
-
+import BackButton from "./BackButton";
 import SurveyFormDisplay from "./SurveyFormDisplay";
 import SurveyResponses from "./SurveyResponses";
+import ResponseDetails from "./ResponseDetails";
+import FormResponseDetails from "./FormResponseDetails"; // New import// Import the new ResponseDetails component
 
 function App() {
   const [formData, setFormData] = useState(null);
@@ -44,6 +46,7 @@ function App() {
     <Router>
       <Navigation />
       <Container>
+        <BackButton />
         <Routes>
           <Route
             path="/"
@@ -56,14 +59,19 @@ function App() {
             path="/survey-forms"
             element={<SurveyForms onSubmit={handleSurveyFormSubmit} />}
           />
-          <Route path="/survey-display" element={<SurveyDisplay />} />{" "}
-          {/* Add SurveyDisplay route */}
           <Route path="/form-responses" element={<FormResponses />} />
           <Route path="/forms/:id/details" element={<FormDetails />} />
           <Route path="/answer-key" element={<AnswerKey />} />
           <Route path="/survey-forms-list" element={<SurveyFormsList />} />
           <Route path="/survey-form-display" element={<SurveyFormDisplay />} />
           <Route path="/survey-responses" element={<SurveyResponses />} />
+          <Route
+            path="/form-responses/:formId"
+            element={<FormResponseDetails />}
+          />{" "}
+          {/* New route */}
+          <Route path="/response-details" element={<ResponseDetails />} />{" "}
+          {/* New route */}
         </Routes>
       </Container>
     </Router>

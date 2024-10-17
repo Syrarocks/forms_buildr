@@ -246,8 +246,23 @@ function FormResponses() {
                   <Header as="h3" color="red">
                     {formTitle}
                   </Header>
-                  <span style={{ fontSize: "1.2em", color: "gray" }}>
-                    Total Responses: {groupedResponses[formTitle]?.length || 0}
+                  <span style={{ fontSize: "1em", color: "black" }}>
+                    <strong>Total Responses:</strong>
+                    <span
+                      style={{
+                        backgroundColor: "rgb(6 6 6)",
+                        color: "rgb(251 250 250)",
+                        borderRadius: "67%",
+                        padding: "6px",
+                        width: "30px",
+                        height: "30px",
+                        display: "inline-block",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {groupedResponses[formTitle]?.length || 0}
+                    </span>
                   </span>
                 </div>
                 {groupedResponses[formTitle]?.map((response, responseIndex) => (
@@ -265,7 +280,7 @@ function FormResponses() {
                         <strong>Name:</strong> {response.name}
                       </p>
 
-                      <p style={{ color: "gray", fontSize: "1.1em" }}>
+                      <p style={{ color: "black", fontSize: "1em" }}>
                         <strong>Submitted At:</strong>{" "}
                         {formatDateTime(response.submittedAt)}
                       </p>
