@@ -53,15 +53,46 @@ const SurveyResponses = () => {
         {Object.keys(groupedResponses).length > 0 ? (
           Object.keys(groupedResponses).map((formId, index) => (
             <div key={index} style={{ marginBottom: "20px" }}>
-              {" "}
-              {/* Add space between form IDs */}
-              <Header as="h4" color="blue">
-                Form ID: {formId} - {groupedResponses[formId].title}
-              </Header>
+              {/* Wrapper for title, form ID, and total responses count */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Header as="h4" color="blue">
+                  Form ID: {formId} - {groupedResponses[formId].title}
+                </Header>
+
+                {/* Display Total Responses at the top right */}
+                <span style={{ fontSize: "1em", color: "black" }}>
+                  <strong>Total Responses:</strong>
+                  <span
+                    style={{
+                      backgroundColor: "rgb(6, 6, 6)",
+                      color: "rgb(251, 250, 250)",
+                      borderRadius: "67%",
+                      padding: "6px",
+                      width: "30px",
+                      height: "30px",
+                      display: "inline-block",
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      marginLeft: "10px", // Add some space between the text and the count
+                    }}
+                  >
+                    {groupedResponses[formId]?.responses.length || 0}
+                  </span>
+                </span>
+              </div>
+
+              {/* View Responses Button */}
               <Button
                 onClick={() => handleFormIdClick(formId)}
                 basic // Make the button background white
                 color="blue" // Make the button text blue
+                style={{ marginTop: "10px" }} // Add margin to separate from the title
               >
                 View Responses
               </Button>
