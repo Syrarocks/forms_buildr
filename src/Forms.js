@@ -27,7 +27,7 @@ const Forms = () => {
     <div style={{ position: "relative" }}>
       {/* Clear Forms button at the top right */}
       <button
-        class="ui inverted red button"
+        className="ui inverted red button"
         color="red"
         onClick={handleClearForms}
         style={{
