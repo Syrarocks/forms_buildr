@@ -12,7 +12,7 @@ import {
   Header,
 } from "semantic-ui-react";
 
-function SurveyForms({ onSubmit }) {
+function CreateSurveyForm({ onSubmit }) {
   const formId = `${Date.now()}`;
   const [questions, setQuestions] = useState([]);
   const [formTitle, setFormTitle] = useState("");
@@ -373,4 +373,4 @@ function SurveyForms({ onSubmit }) {
   );
 }
 
-export default SurveyForms;
+export default CreateSurveyForm;

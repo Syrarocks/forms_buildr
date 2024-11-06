@@ -1,42 +1,46 @@
 import React, { useEffect, useState } from "react";
 import { Container, Segment, Header, Button } from "semantic-ui-react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate for routing
+import { useNavigate, useParams } from "react-router-dom";
 
 const SurveyResponses = () => {
-  const [groupedResponses, setGroupedResponses] = useState({});
-  const navigate = useNavigate(); // Initialize useNavigate
+  const [responses, setResponses] = useState([]);
+  const { formId } = useParams(); // Use formId from the URL
+  const navigate = useNavigate();
 
   useEffect(() => {
     const savedResponses =
       JSON.parse(localStorage.getItem("surveyResponses")) || [];
-    groupAndSetResponses(savedResponses);
-  }, []);
 
-  const groupAndSetResponses = (responses) => {
-    const grouped = responses.reduce((acc, response) => {
-      const formId = response.form_id || "No ID";
-      if (!acc[formId]) {
-        acc[formId] = {
-          title: response.title || "Untitled Form",
-          responses: [],
-        };
-      }
-      acc[formId].responses.push(response);
-      return acc;
-    }, {});
-    setGroupedResponses(grouped);
-  };
+    // Filter responses by the specific formId
+    const filteredResponses = savedResponses.filter(
+      (response) => response.form_id === formId
+    );
+    setResponses(filteredResponses);
+  }, [formId]);
 
-  const handleFormIdClick = (formId) => {
-    // Navigate to the new page with the formId and its responses
-    navigate(`/form-responses/${formId}`, {
-      state: { responses: groupedResponses[formId].responses, formId },
+  const handleResponseClick = (response) => {
+    // Navigate to ResponseDetails with response data
+    navigate(`/response-details`, {
+      state: { response },
     });
   };
 
   const handleClearResponses = () => {
     localStorage.removeItem("surveyResponses");
-    setGroupedResponses({});
+    setResponses([]);
+  };
+
+  // Function to format date and time
+  const formatDateTime = (dateTimeString) => {
+    const date = new Date(dateTimeString);
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
   };
 
   return (
@@ -50,10 +54,9 @@ const SurveyResponses = () => {
       </Button>
 
       <Segment style={{ maxWidth: "650px", margin: "20px auto" }}>
-        {Object.keys(groupedResponses).length > 0 ? (
-          Object.keys(groupedResponses).map((formId, index) => (
+        {responses.length > 0 ? (
+          responses.map((response, index) => (
             <div key={index} style={{ marginBottom: "20px" }}>
-              {/* Wrapper for title, form ID, and total responses count */}
               <div
                 style={{
                   display: "flex",
@@ -62,44 +65,32 @@ const SurveyResponses = () => {
                 }}
               >
                 <Header as="h4" color="blue">
-                  Form ID: {formId} - {groupedResponses[formId].title}
+                  Form ID: {response.form_id} -{" "}
+                  {response.title || "Untitled Form"}
                 </Header>
-
-                {/* Display Total Responses at the top right */}
                 <span style={{ fontSize: "1em", color: "black" }}>
-                  <strong>Total Responses:</strong>
-                  <span
-                    style={{
-                      backgroundColor: "rgb(6, 6, 6)",
-                      color: "rgb(251, 250, 250)",
-                      borderRadius: "67%",
-                      padding: "6px",
-                      width: "30px",
-                      height: "30px",
-                      display: "inline-block",
-                      textAlign: "center",
-                      fontWeight: "bold",
-                      marginLeft: "10px", // Add some space between the text and the count
-                    }}
-                  >
-                    {groupedResponses[formId]?.responses.length || 0}
-                  </span>
+                  <strong>Submitted At:</strong>{" "}
+                  {formatDateTime(response.submittedAt)}
                 </span>
               </div>
 
-              {/* View Responses Button */}
-              <Button
-                onClick={() => handleFormIdClick(formId)}
-                basic // Make the button background white
-                color="blue" // Make the button text blue
-                style={{ marginTop: "10px" }} // Add margin to separate from the title
-              >
-                View Responses
-              </Button>
+              <div style={{ marginBottom: "10px" }}>
+                <p>
+                  <strong>Name:</strong> {response.name}
+                </p>
+                <Button
+                  onClick={() => handleResponseClick(response)}
+                  basic
+                  color="blue"
+                  style={{ marginTop: "5px", display: "block" }} // Display as block for clarity
+                >
+                  View Response
+                </Button>
+              </div>
             </div>
           ))
         ) : (
-          <p>No survey responses available</p>
+          <p>No responses available for this form</p>
         )}
       </Segment>
     </Container>

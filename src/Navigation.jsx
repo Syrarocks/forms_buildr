@@ -9,13 +9,7 @@ const Navigation = () => {
       <Menu.Item
         as={Link}
         to="/"
-        name="Questions"
-        style={{ fontWeight: "bold" }}
-      />
-      <Menu.Item
-        as={Link}
-        to="/survey-forms"
-        name="Survey"
+        name="Quiz Form"
         style={{ fontWeight: "bold" }}
       />
 
@@ -27,7 +21,7 @@ const Navigation = () => {
           primary
           style={{ fontWeight: "bold" }} // Makes the button text bold
         >
-          Forms
+          Quiz Form
         </Button>
       </Menu.Item>
 
@@ -39,34 +33,9 @@ const Navigation = () => {
           primary
           style={{ fontWeight: "bold" }} // Makes the button text bold
         >
-          Survey Forms List
+          Survey Form
         </Button>
       </Menu.Item>
-
-      <Menu.Menu position="right">
-        <Menu.Item>
-          <Button
-            as={Link}
-            to="/form-responses"
-            primary
-            style={{ fontWeight: "bold" }}
-          >
-            Form Responses
-          </Button>
-        </Menu.Item>
-
-        {/* Add Survey Responses Button */}
-        <Menu.Item>
-          <Button
-            as={Link}
-            to="/survey-responses"
-            secondary
-            style={{ fontWeight: "bold" }} // Makes the button text bold
-          >
-            Survey Responses
-          </Button>
-        </Menu.Item>
-      </Menu.Menu>
     </Menu>
   );
 };

@@ -7,7 +7,7 @@ import {
   Form,
   Checkbox,
 } from "semantic-ui-react";
-import { useLocation } from "react-router-dom"; // Import useLocation
+import { useLocation } from "react-router-dom";
 
 // Function to format date and time
 const formatDateTime = (dateTimeString) => {

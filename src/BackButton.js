@@ -13,6 +13,7 @@ const BackButton = () => {
     <div
       style={{
         position: "fixed",
+        top: "60px", // Fixes the button to a set height from the top
         left: "10px",
         zIndex: 1000, // Ensure it stays on top
         cursor: "pointer",

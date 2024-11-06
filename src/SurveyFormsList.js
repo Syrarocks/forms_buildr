@@ -13,33 +13,26 @@ const SurveyFormsList = () => {
     setSurveyForms(storedSurveyForms);
   }, []);
 
+  const handleCreateForm = () => {
+    navigate("/create-survey-form");
+  };
+
   const handleViewForm = (form) => {
-    // Navigate to the survey form display page, passing the form data as state
     navigate(`/survey-display`, { state: { form } });
   };
 
-  const handleClearForms = () => {
-    // Clear survey forms from localStorage and state
-    localStorage.removeItem("surveyForms");
-    setSurveyForms([]);
+  const handleViewResponses = (formId) => {
+    navigate(`/survey-responses/${formId}`); // Navigate with formId as a parameter
   };
 
   return (
     <div style={{ position: "relative" }}>
-      {/* Clear Forms button at the top right */}
-
       <button
-        class="ui inverted red button"
-        color="red"
-        onClick={handleClearForms}
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          marginRight: "240px",
-        }}
+        class="ui green button"
+        onClick={handleCreateForm}
+        style={{ position: "absolute", top: 0, right: "230px", margin: "10px" }}
       >
-        Clear Forms
+        Create Forms +{" "}
       </button>
 
       <h2 style={{ marginLeft: "240px" }}>All Created Survey Forms</h2>
@@ -51,23 +44,33 @@ const SurveyFormsList = () => {
                 style={{
                   maxWidth: "650px",
                   margin: "10px auto",
-                  marginTop: "10px",
+                  marginTop: "30px",
                 }}
               >
-                {/* Adjusted maxWidth and centered using margin */}
                 <List.Header>{form.title}</List.Header>
                 <List.Description>
                   <strong>Form ID: {form.form_id}</strong>
                 </List.Description>
                 <List.Description>{form.description}</List.Description>
 
-                <Button
-                  primary
-                  onClick={() => handleViewForm(form)}
-                  style={{ marginTop: "1em" }}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    gap: "10px",
+                    marginTop: "1em",
+                  }}
                 >
-                  View Survey Form
-                </Button>
+                  <Button primary onClick={() => handleViewForm(form)}>
+                    View Survey Form
+                  </Button>
+                  <Button
+                    secondary
+                    onClick={() => handleViewResponses(form.form_id)}
+                  >
+                    View Survey Responses
+                  </Button>
+                </div>
               </Segment>
             </List.Item>
           ))

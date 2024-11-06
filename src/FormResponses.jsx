@@ -24,7 +24,7 @@ const formatDateTime = (dateTimeString) => {
   return `${formattedDate} ${formattedTime}`;
 };
 
-function FormResponses() {
+const FormResponses = () => {
   const [groupedResponses, setGroupedResponses] = useState({});
   const [selectedResponse, setSelectedResponse] = useState(null);
 
@@ -55,7 +55,8 @@ function FormResponses() {
   };
 
   const handleViewResponse = (response) => {
-    setSelectedResponse(response); // Set the selected response
+    // Set selected response and prevent it from being selected again
+    setSelectedResponse(response);
   };
 
   const renderQuestionOptions = (question) => {
@@ -206,7 +207,6 @@ function FormResponses() {
             </p>
           </div>
 
-          {/* Add a margin to create space between Roll No and the questions */}
           <div style={{ marginBottom: "20px" }}></div>
 
           <Form>
@@ -221,14 +221,17 @@ function FormResponses() {
               ))}
           </Form>
           <Button
-            onClick={() => setSelectedResponse(null)}
+            onClick={() => {
+              // Reset the selected response when going back
+              setSelectedResponse(null);
+            }} // Set selectedResponse to null to go back
             style={{ backgroundColor: "black", color: "white" }}
           >
             Back
           </Button>
         </Segment>
       ) : (
-        // Display the list of form responses
+        // Display the list of form responses grouped by form title
         <>
           {Object.keys(groupedResponses).length > 0 ? (
             Object.keys(groupedResponses).map((formTitle, index) => (
@@ -291,7 +294,7 @@ function FormResponses() {
                     </p>
 
                     <Button
-                      onClick={() => handleViewResponse(response)}
+                      onClick={() => handleViewResponse(response)} // Set selected response
                       style={{ marginTop: "1em" }}
                     >
                       View Response
@@ -307,6 +310,6 @@ function FormResponses() {
       )}
     </Container>
   );
-}
+};
 
 export default FormResponses;

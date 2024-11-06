@@ -2,21 +2,21 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "semantic-ui-css/semantic.min.css";
 import { Container } from "semantic-ui-react";
+import Navigation from "./Navigation";
+import BackButton from "./BackButton";
 import FormEditor from "./FormEditor";
 import FormDisplay from "./FormDisplay";
-import Navigation from "./Navigation";
 import Forms from "./Forms";
-import FormDetails from "./FormDetails";
-import SurveyForms from "./SurveyForms";
-import SurveyDisplay from "./SurveyFormDisplay"; // Import SurveyDisplay component
+
+import SurveyDisplay from "./SurveyFormDisplay";
 import FormResponses from "./FormResponses";
 import AnswerKey from "./AnswerKey";
-import SurveyFormsList from "./SurveyFormsList"; // Import the new component
-import BackButton from "./BackButton";
+import SurveyFormsList from "./SurveyFormsList";
 import SurveyFormDisplay from "./SurveyFormDisplay";
 import SurveyResponses from "./SurveyResponses";
 import ResponseDetails from "./ResponseDetails";
-import FormResponseDetails from "./FormResponseDetails"; // New import// Import the new ResponseDetails component
+import FormResponseDetails from "./FormResponseDetails";
+import CreateSurveyForm from "./CreateSurveyForm";
 
 function App() {
   const [formData, setFormData] = useState(null);
@@ -55,22 +55,24 @@ function App() {
           <Route path="/forms" element={<Forms />} />
           <Route path="/survey-display" element={<SurveyDisplay />} />
           <Route path="/forms/:id" element={<FormDisplay />} />
-          <Route
-            path="/survey-forms"
-            element={<SurveyForms onSubmit={handleSurveyFormSubmit} />}
-          />
           <Route path="/form-responses" element={<FormResponses />} />
-          <Route path="/forms/:id/details" element={<FormDetails />} />
           <Route path="/answer-key" element={<AnswerKey />} />
           <Route path="/survey-forms-list" element={<SurveyFormsList />} />
           <Route path="/survey-form-display" element={<SurveyFormDisplay />} />
-          <Route path="/survey-responses" element={<SurveyResponses />} />
+          <Route
+            path="/survey-responses/:formId"
+            element={<SurveyResponses />}
+          />{" "}
+          {/* Updated route */}
           <Route
             path="/form-responses/:formId"
             element={<FormResponseDetails />}
+          />
+          <Route path="/response-details" element={<ResponseDetails />} />
+          <Route
+            path="/create-survey-form"
+            element={<CreateSurveyForm />}
           />{" "}
-          {/* New route */}
-          <Route path="/response-details" element={<ResponseDetails />} />{" "}
           {/* New route */}
         </Routes>
       </Container>
