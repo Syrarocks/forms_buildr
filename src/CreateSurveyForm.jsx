@@ -1,376 +1,244 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import {
-  Container,
+  Box,
   Button,
-  Form,
-  Input,
-  TextArea,
-  Segment,
-  Message,
-  Icon,
+  Card,
+  CardContent,
+  CardActions,
   Grid,
-  Header,
-} from "semantic-ui-react";
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+  IconButton,
+  Slide,
+} from "@mui/material";
+import { AddCircle, DeleteOutline, Clear, Send } from "@mui/icons-material";
+import "./SurveyForm.css";
 
-function CreateSurveyForm({ onSubmit }) {
-  const formId = `${Date.now()}`;
-  const [questions, setQuestions] = useState([]);
+const SurveyForm = () => {
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState("");
-  const lastQuestionRef = useRef(null);
+  const [questions, setQuestions] = useState([]);
+  const [trashAnim, setTrashAnim] = useState(false);
+  const [addAnim, setAddAnim] = useState(false);
+  const [clearAnim, setClearAnim] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    const savedFormData = JSON.parse(
-      localStorage.getItem("savedSurveyFormData")
-    );
-    if (savedFormData) {
-      setFormTitle(savedFormData.title || "");
-      setFormDescription(savedFormData.description || "");
-      setQuestions(savedFormData.questions || []);
+  // Validate the entire form
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {};
+
+    // Validate title and description
+    if (!formTitle.trim()) {
+      newErrors.formTitle = "Form Title is required.";
+      isValid = false;
     }
-  }, []);
-
-  useEffect(() => {
-    if (submitted) {
-      const timer = setTimeout(() => {
-        setSubmitted(false);
-        setError("");
-      }, 5000);
-
-      return () => clearTimeout(timer);
+    if (!formDescription.trim()) {
+      newErrors.formDescription = "Form Description is required.";
+      isValid = false;
     }
-  }, [submitted]);
 
-  const handleClearFields = () => {
-    setFormTitle("");
-    setFormDescription("");
-    setQuestions([]);
-    setSubmitted(false);
-    setError("");
-    localStorage.removeItem("savedSurveyFormData");
-  };
-
-  const handleQuestionChange = (index, value) => {
-    const newQuestions = [...questions];
-    newQuestions[index].text = value;
-    setQuestions(newQuestions);
-  };
-
-  const handleQuestionTypeChange = (index, value) => {
-    const newQuestions = [...questions];
-    newQuestions[index].type = value;
-
-    if (value === "checkboxes") {
-      newQuestions[index].options = [{ label: "" }];
+    // Validate questions
+    if (questions.length === 0) {
+      newErrors.questions = "At least one question is required.";
+      isValid = false;
     } else {
-      newQuestions[index].options = [];
+      const questionErrors = [];
+      questions.forEach((q, index) => {
+        const qError = {};
+        if (!q.text.trim()) {
+          qError.text = `Question ${index + 1} text is required.`;
+          isValid = false;
+        }
+        if (!q.type) {
+          qError.type = `Question ${index + 1} type is required.`;
+          isValid = false;
+        }
+        questionErrors.push(qError);
+      });
+      newErrors.questionErrors = questionErrors;
     }
 
-    setQuestions(newQuestions);
+    setErrors(newErrors);
+    return isValid;
   };
 
   const handleAddQuestion = () => {
-    setQuestions((prevQuestions) => [
-      ...prevQuestions,
-      {
-        id: prevQuestions.length + 1,
-        text: "",
-        type: "",
-        required: false,
-        options: [],
-      },
+    setAddAnim(true);
+    setTimeout(() => setAddAnim(false), 500);
+
+    setQuestions((prev) => [
+      ...prev,
+      { id: Date.now(), text: "", type: "", options: [], required: false },
     ]);
-
-    setTimeout(() => {
-      lastQuestionRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
   };
 
-  const handleDeleteQuestion = (index) => {
-    const newQuestions = [...questions];
-    newQuestions.splice(index, 1);
-    setQuestions(newQuestions);
-  };
-
-  const handleRequiredChange = (index, value) => {
-    const newQuestions = [...questions];
-    newQuestions[index].required = value;
-    setQuestions(newQuestions);
-  };
-
-  const handleAddOption = (questionIndex) => {
-    const newQuestions = [...questions];
-    newQuestions[questionIndex].options.push({ label: "" });
-    setQuestions(newQuestions);
-  };
-
-  const handleRemoveOption = (questionIndex, optionIndex) => {
-    const newQuestions = [...questions];
-    newQuestions[questionIndex].options.splice(optionIndex, 1);
-    setQuestions(newQuestions);
-  };
-
-  const handleLabelChange = (questionIndex, optionIndex, label) => {
-    const newQuestions = [...questions];
-    newQuestions[questionIndex].options[optionIndex].label = label;
-
-    const hasEmptyOption = newQuestions[questionIndex].options.some(
-      (option) => !option.label.trim()
+  const handleQuestionChange = (id, key, value) => {
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, [key]: value } : q))
     );
-    if (!hasEmptyOption && error === "All options must be filled out.") {
-      setError("");
-    }
-
-    setQuestions(newQuestions);
   };
 
-  const validateForm = () => {
-    if (!formTitle) {
-      setError("Form title is required.");
-      return false;
-    }
-    for (const question of questions) {
-      if (question.type === "checkboxes") {
-        const hasEmptyOption = question.options.some(
-          (option) => !option.label.trim()
-        );
-        if (hasEmptyOption) {
-          setError("All options must be filled out.");
-          return false;
-        }
-        if (question.options.length < 2) {
-          setError("At least two options are required for checkboxes.");
-          return false;
-        }
-      }
-    }
-    return true;
+  const handleDeleteQuestion = (id) => {
+    setTrashAnim(true);
+    setTimeout(() => {
+      setQuestions((prev) => prev.filter((q) => q.id !== id));
+      setTrashAnim(false);
+    }, 800);
   };
 
-  const handleSubmitForm = (e) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    const formData = {
-      form_id: formId,
-      title: formTitle,
-      description: formDescription,
-      questions,
-    };
-
-    const existingForms = JSON.parse(localStorage.getItem("surveyForms")) || [];
-    existingForms.push(formData);
-    localStorage.setItem("surveyForms", JSON.stringify(existingForms));
-
-    setSubmitted(true);
-    setFormTitle("");
-    setFormDescription("");
-    setQuestions([]);
-    setError("");
-    console.log("Form Submitted:", formData);
-    if (onSubmit) onSubmit(formData);
+  const handleClearForm = () => {
+    setClearAnim(true);
+    setTimeout(() => {
+      setFormTitle("");
+      setFormDescription("");
+      setQuestions([]);
+      setErrors({});
+      setClearAnim(false);
+    }, 500);
   };
 
-  const renderCheckboxOptions = (question, questionIndex) => (
-    <Form.Group grouped>
-      {question.options.map((option, optionIndex) => (
-        <Form.Field
-          key={optionIndex}
-          style={{ display: "flex", alignItems: "center", marginBottom: "5px" }}
-        >
-          <Input
-            placeholder={`Option ${optionIndex + 1}`}
-            value={option.label}
-            onChange={(e) =>
-              handleLabelChange(questionIndex, optionIndex, e.target.value)
-            }
-            style={{ marginRight: "10px", width: "250px" }}
-          />
-          <Button
-            icon
-            color="red"
-            onClick={() => handleRemoveOption(questionIndex, optionIndex)}
-            style={{ padding: "10px", marginRight: "5px" }}
-          >
-            <Icon name="close" />
-          </Button>
-        </Form.Field>
-      ))}
-      <Button
-        type="button" // Change type to button to avoid form submission
-        icon
-        color="blue"
-        onClick={() => handleAddOption(questionIndex)}
-        style={{ padding: "10px", marginTop: "5px" }}
-      >
-        <Icon name="plus" />
-      </Button>
-    </Form.Group>
-  );
-
-  const renderQuestions = () =>
-    questions.map((question, index) => (
-      <div
-        key={question.id}
-        style={{ marginBottom: "20px" }}
-        ref={index === questions.length - 1 ? lastQuestionRef : null}
-      >
-        <Grid>
-          <Grid.Row columns={2} verticalAlign="middle">
-            <Grid.Column width={10}>
-              <Header as="h4" style={{ marginBottom: "5px" }}>{`Question ${
-                index + 1
-              }`}</Header>
-              <Form.Input
-                fluid
-                placeholder="Enter your question"
-                value={question.text}
-                onChange={(e) => handleQuestionChange(index, e.target.value)}
-                style={{ marginBottom: "20px" }}
-              />
-            </Grid.Column>
-            <Grid.Column width={6}>
-              <Header as="h4" style={{ marginBottom: "5px" }}>
-                Question Type
-              </Header>
-              <Form.Select
-                fluid
-                placeholder="Select Type"
-                options={[
-                  {
-                    key: "checkboxes",
-                    text: "Checkboxes",
-                    value: "checkboxes",
-                  },
-                  { key: "text", text: "Text", value: "text" },
-                  { key: "rating", text: "Rating", value: "rating" },
-                ]}
-                value={question.type}
-                onChange={(e, { value }) =>
-                  handleQuestionTypeChange(index, value)
-                }
-                style={{ marginBottom: "20px" }}
-              />
-            </Grid.Column>
-          </Grid.Row>
-          {question.type === "checkboxes" &&
-            renderCheckboxOptions(question, index)}
-          <Grid.Row columns={2} verticalAlign="middle">
-            <Grid.Column width={8}>
-              <Form.Checkbox
-                label="Required"
-                checked={question.required}
-                onChange={(e, { checked }) =>
-                  handleRequiredChange(index, checked)
-                }
-                style={{ marginRight: "10px" }}
-              />
-            </Grid.Column>
-            <Grid.Column width={8} textAlign="right">
-              <Button
-                icon
-                color="red"
-                type="button" // Change type to button to avoid form submission
-                onClick={() => handleDeleteQuestion(index)}
-                style={{ padding: "10px", marginTop: "5px" }}
-              >
-                <Icon name="trash" />
-              </Button>
-            </Grid.Column>
-          </Grid.Row>
-        </Grid>
-      </div>
-    ));
-
-  const isSubmitEnabled =
-    formTitle && questions.length > 0 && questions.every((q) => q.type);
+  const handleSubmit = () => {
+    if (validateForm()) {
+      console.log("Form submitted successfully:", {
+        formTitle,
+        formDescription,
+        questions,
+      });
+      alert("Form submitted successfully!");
+    } else {
+      console.log("Form validation failed.");
+    }
+  };
 
   return (
-    <Container style={{ maxWidth: "600px", margin: "auto" }}>
-      <Segment
-        raised
-        style={{ padding: "20px", maxWidth: "800px", margin: "auto" }}
-      >
-        <Form onSubmit={handleSubmitForm}>
-          <Form.Input
-            fluid
-            placeholder="Form Title"
-            value={formTitle}
-            onChange={(e) => setFormTitle(e.target.value)}
-            style={{
-              fontSize: "1.5em",
-              fontWeight: formTitle ? "bold" : "normal",
-              marginBottom: "20px",
-            }}
-          />
-          <TextArea
-            placeholder="Form Description"
-            value={formDescription}
-            onChange={(e) => setFormDescription(e.target.value)}
-            style={{ marginBottom: "20px" }}
-          />
-          {renderQuestions()}
+    <Box sx={{ p: 4, maxWidth: "800px", margin: "auto" }}>
+      <Card variant="outlined" sx={{ mb: 3, p: 2 }}>
+        <Typography variant="h5" gutterBottom>
+          Create Survey
+        </Typography>
+        <TextField
+          label="Form Title"
+          variant="outlined"
+          fullWidth
+          value={formTitle}
+          onChange={(e) => setFormTitle(e.target.value)}
+          error={!!errors.formTitle}
+          helperText={errors.formTitle}
+          sx={{ mb: 2 }}
+        />
+        <TextField
+          label="Form Description"
+          variant="outlined"
+          fullWidth
+          multiline
+          rows={3}
+          value={formDescription}
+          onChange={(e) => setFormDescription(e.target.value)}
+          error={!!errors.formDescription}
+          helperText={errors.formDescription}
+          sx={{ mb: 2 }}
+        />
+      </Card>
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <Button
-              color="blue"
-              type="button" // Change type to button to avoid form submission
-              onClick={handleAddQuestion}
-              icon
-              labelPosition="left"
-              style={{ marginBottom: "1em" }}
-            >
-              <Icon name="add" />
-              Add Question
-            </Button>
-
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <button
-                class="ui inverted red button"
-                type="button"
-                onClick={handleClearFields}
-                color="red"
-                style={{ marginBottom: "1em", marginRight: "10px" }}
-              >
-                Clear
-              </button>
-
-              {isSubmitEnabled && (
-                <Button
-                  color="blue"
-                  type="submit"
-                  style={{ marginBottom: "1em" }}
-                >
-                  <Icon name="paper plane" />
-                  Submit
-                </Button>
-              )}
-            </div>
-          </div>
-        </Form>
-      </Segment>
-
-      {submitted && (
-        <Message positive style={{ maxWidth: "800px", margin: "20px auto" }}>
-          <Message.Header>
-            Your response has been successfully submitted!
-          </Message.Header>
-        </Message>
+      {questions.length === 0 && errors.questions && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {errors.questions}
+        </Typography>
       )}
-    </Container>
-  );
-}
 
-export default CreateSurveyForm;
+      {questions.map((q, index) => (
+        <Slide key={q.id} direction="up" in mountOnEnter unmountOnExit>
+          <Card variant="outlined" sx={{ mb: 3 }}>
+            <CardContent>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={8}>
+                  <TextField
+                    label={`Question ${index + 1}`}
+                    variant="outlined"
+                    fullWidth
+                    value={q.text}
+                    onChange={(e) =>
+                      handleQuestionChange(q.id, "text", e.target.value)
+                    }
+                    error={!!errors.questionErrors?.[index]?.text}
+                    helperText={errors.questionErrors?.[index]?.text}
+                  />
+                </Grid>
+                <Grid item xs={4}>
+                  <FormControl fullWidth error={!!errors.questionErrors?.[index]?.type}>
+                    <InputLabel>Question Type</InputLabel>
+                    <Select
+                      value={q.type}
+                      onChange={(e) =>
+                        handleQuestionChange(q.id, "type", e.target.value)
+                      }
+                      label="Question Type"
+                    >
+                      <MenuItem value="text">Text</MenuItem>
+                      <MenuItem value="checkboxes">Checkboxes</MenuItem>
+                      <MenuItem value="rating">Rating</MenuItem>
+                    </Select>
+                    {errors.questionErrors?.[index]?.type && (
+                      <Typography variant="caption" color="error">
+                        {errors.questionErrors[index].type}
+                      </Typography>
+                    )}
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </CardContent>
+            <CardActions>
+              <IconButton
+                color="error"
+                className={trashAnim ? "trash-bin" : ""}
+                onClick={() => handleDeleteQuestion(q.id)}
+              >
+                <DeleteOutline />
+              </IconButton>
+            </CardActions>
+          </Card>
+        </Slide>
+      ))}
+
+      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddCircle />}
+          className={addAnim ? "button-bounce" : ""}
+          onClick={handleAddQuestion}
+        >
+          Add Question
+        </Button>
+        <Box>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<Clear />}
+            className={clearAnim ? "button-shake" : ""}
+            onClick={handleClearForm}
+            sx={{ mr: 2 }}
+          >
+            Clear
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<Send />}
+            onClick={handleSubmit}
+            disabled
+          >
+            Submit
+          </Button>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
+export default SurveyForm;
